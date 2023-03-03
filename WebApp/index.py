@@ -16,6 +16,7 @@ import plotly.express as px
 from app import app
 from pages import (
     singleAssetReplinePage,
+    rampAssetPage,
 )
 
 # from figureFactory.figureFactory import FiguerFactory
@@ -45,6 +46,8 @@ app.layout = html.Div(
 def display_page(pageValue):
     if pageValue == "Single Asset Repline":
         return singleAssetReplinePage.layout
+    elif pageValue == "Ramp Manager":
+        return rampAssetPage.layout
     else:
         return "To be Developed"
 

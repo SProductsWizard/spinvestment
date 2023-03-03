@@ -17,30 +17,30 @@ from app import Asset, AssetRamper, SPCFUtils
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
-assetReplineSnapshot = assetReplineSnapshot.sort_values(
-    by=["replineIndex"], ascending=True
-)
 
 layout = html.Div(
     [
-        html.H4(id="datatable-title", children="Asset Repline"),
-        html.Button("Load Selected", id="load-select-repline", n_clicks=0),
-        html.Button("Refresh", id="refresh-repline-table", n_clicks=0),
+        html.H4(children="Asset Repline"),
         html.Br(),
-        dash_table.DataTable(
-            id="repline-table",
-            columns=[
-                {"name": i, "id": i, "deletable": True, "selectable": True}
-                for i in assetReplineSnapshot.columns
+        html.Div(
+            id="repline-table-div",
+            children=[
+                dash_table.DataTable(
+                    id="repline-table",
+                    columns=[
+                        {"name": i, "id": i, "deletable": False, "selectable": True}
+                        for i in assetReplineSnapshot.columns
+                    ],
+                    data=assetReplineSnapshot.to_dict("records"),
+                    sort_mode="single",
+                    row_selectable="single",
+                    selected_columns=[],
+                    selected_rows=[],
+                    page_action="native",
+                    page_current=0,
+                    page_size=10,
+                ),
             ],
-            data=assetReplineSnapshot.to_dict("records"),
-            sort_mode="single",
-            row_selectable="single",
-            selected_columns=[],
-            selected_rows=[],
-            page_action="native",
-            page_current=0,
-            page_size=10,
         ),
         html.Div(
             id="asset-repline-pad1",
@@ -111,8 +111,21 @@ layout = html.Div(
                             style={"marginRight": "10px"},
                         ),
                         html.Br(),
+                        html.Br(),
+                        html.Button(
+                            "Load Selected", id="load-select-repline", n_clicks=0
+                        ),
+                        html.Br(),
+                        html.Br(),
                         html.Button(
                             "Run Cashflow", id="run-single-repline-cashflow", n_clicks=0
+                        ),
+                        html.Br(),
+                        html.Br(),
+                        html.Button(
+                            "Add to Database",
+                            id="add-new-repline-to-database",
+                            n_clicks=0,
                         ),
                     ],
                     style=dict(width="10%"),
@@ -212,6 +225,66 @@ layout = html.Div(
         ),
     ]
 )
+
+
+@app.callback(
+    Output("repline-table-div", "children"),
+    [
+        State("notional-input", "value"),
+        State("term-input", "value"),
+        State("intrate-input", "value"),
+        State("cdrvector-input", "value"),
+        State("cprvector-input", "value"),
+        State("sevvector-input", "value"),
+        State("dqvector-input", "value"),
+        Input("add-new-repline-to-database", "n_clicks"),
+    ],
+    prevent_initial_call=True,
+)
+def add_new_repline(
+    notionalInput,
+    termInput,
+    intrateInput,
+    cdrvectorInput,
+    cprvectorInput,
+    sevvectorInput,
+    dqvectorInput,
+    n_clicks,
+):
+    global assetReplineSnapshot
+    newLine = {}
+    newLine["replineIndex"] = str(int(assetReplineSnapshot["replineIndex"].max()) + 1)
+    newLine["intRate"] = intrateInput
+    newLine["notional"] = notionalInput
+    newLine["term"] = termInput
+    newLine["cdrVector"] = cdrvectorInput
+    newLine["cprVector"] = cprvectorInput
+    newLine["sevVector"] = sevvectorInput
+    newLine["dqVector"] = dqvectorInput
+    newLine["archive"] = "FALSE"
+    newLine["replineType"] = "amortization"
+
+    db_mgr.upload_assetRepline(pd.DataFrame([newLine]))
+
+    assetReplineSnapshot = db_mgr.load_assetRepline()
+
+    return (
+        dash_table.DataTable(
+            id="repline-table",
+            columns=[
+                {"name": i, "id": i, "deletable": False, "selectable": True}
+                for i in assetReplineSnapshot.columns
+            ],
+            data=assetReplineSnapshot.to_dict("records"),
+            sort_mode="single",
+            row_selectable="single",
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current=0,
+            page_size=10,
+        ),
+    )
 
 
 @app.callback(
