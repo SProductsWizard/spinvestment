@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 class SPCFUtils:
     @staticmethod
-    def convertIntexRamp(intexSyntax, term, divisor=1):
+    def convertIntexRamp(intexSyntax, term, divisor=1, forceInt=False):
         intexSyntax = intexSyntax.lower()
 
         if "ramp" in intexSyntax:
@@ -43,6 +43,9 @@ class SPCFUtils:
             term - len(intexSyntaxSplit)
         )
 
-        res = [float(item) / divisor for item in intexSyntaxSplitExtend]
+        if forceInt:
+            res = [int(float(item) / divisor) for item in intexSyntaxSplitExtend]
+        else:
+            res = [float(item) / divisor for item in intexSyntaxSplitExtend]
 
         return res

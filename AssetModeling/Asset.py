@@ -163,6 +163,7 @@ class AmortizationAsset(Asset):
 
         self.dollarColumns = [
             "bopBal",
+            "eopBal",
             "perfBal",
             "dqBal",
             "prepayPrin",

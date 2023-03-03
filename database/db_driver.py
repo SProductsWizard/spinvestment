@@ -35,6 +35,7 @@ class AtlasDriver:
         )
         return dataPull
 
+
     # def delete_data(self, cutDate):
     #     cutDate = pd.to_datetime(cutDate)
     #     col = self.database["FinsightNIBond"]

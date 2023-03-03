@@ -3,8 +3,8 @@ Installment Loan Style Cashflow Analysis
  > input major collateral performance matrics (cdr, cpr, dq, sev, etc), genereate cashflow
  > show / visualize collateral cashflow analytics metrics
  > given ramp schedule parameter, generate ramped up collateral portfolio and related cashflow as well as riks metrics
+
  > (advanced) given calibration of cpr, cdr, dq, etc. models, simnulate loan level data and form repline
- 
  > (advanced) generate collateral risk profile analysis report, using simulated portfolio over time
  
  
@@ -13,6 +13,9 @@ Structuring
  > able to replicate wh structure
  > able to replicate ABS structure
  > able to replicate wh + ABS structure
+
+
+
  
 
 Portfolio Management
@@ -22,5 +25,19 @@ Portfolio Management
  
  
 
+ 
+ WH Structuring
+ > adv rate
+ > warehouse line commit period
+ > undrawn fee, coupon
+ > legal fees, trust fees
+ > exit execution price, underwriting fees --> net execution price
+ > exit select of portfolio
+ 
+ > covenants
+ > CNL, DQ, 3mo CDR
+ 
+ 
+ 
  
  
