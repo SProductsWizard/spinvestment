@@ -42,6 +42,7 @@ class AssetRamper:
             cf[asset.dollarColumns] = cf[asset.dollarColumns] * rampFactor
 
             cf["rampSize"] = cf["period"].apply(lambda x: size if x == 0 else 0)
+            cf["purchasePx"] = cf["period"].apply(lambda x: px if x == 0 else np.nan)
             cf["purchaseCash"] = px * cf["rampSize"] / 100
 
             cf["repaymentCash"] = cf["totalCF"]
@@ -54,11 +55,13 @@ class AssetRamper:
                     "rampPeriod",
                     "bopBal",
                     "intCF",
+                    "netIntCF",
                     "prinCF",
                     "lossPrin",
                     "dqBal",
                     "eopBal",
                     "rampSize",
+                    "purchasePx",
                     "purchaseCash",
                     "repaymentCash",
                     "investmentCash",
@@ -78,11 +81,13 @@ class AssetRamper:
             .agg(
                 bopBal=("bopBal", "sum"),
                 intCF=("intCF", "sum"),
+                netIntCF=("netIntCF", "sum"),
                 prinCF=("prinCF", "sum"),
                 lossPrin=("lossPrin", "sum"),
                 dqBal=("dqBal", "sum"),
                 eopBal=("eopBal", "sum"),
                 rampSize=("rampSize", "sum"),
+                purchasePx=("purchasePx", "sum"),
                 purchaseCash=("purchaseCash", "sum"),
                 repaymentCash=("repaymentCash", "sum"),
                 investmentCash=("investmentCash", "sum"),
@@ -118,7 +123,9 @@ class AssetRamper:
             / rampStats["metrics"]["Total Purchase Balance"]
         )
 
-        rampStats["metrics"]["Total Int Repayment"] = self.rampCashflow["intCF"].sum()
+        rampStats["metrics"]["Total Int Repayment"] = self.rampCashflow[
+            "netIntCF"
+        ].sum()
         rampStats["metrics"]["Total Prin Repayment"] = self.rampCashflow["prinCF"].sum()
         rampStats["metrics"]["Total Repayment"] = self.rampCashflow[
             "repaymentCash"
@@ -141,7 +148,7 @@ class AssetRamper:
         ]
 
         rampStats["ts_metrics"]["repaymentCurve"] = self.rampCashflow[
-            ["rampPeriod", "intCF", "prinCF"]
+            ["rampPeriod", "netIntCF", "prinCF"]
         ]
 
         rampStats["ts_metrics"]["dollarLossCurve"] = self.rampCashflow[

@@ -19,8 +19,6 @@ from pages import (
     rampAssetPage,
 )
 
-# from figureFactory.figureFactory import FiguerFactory
-
 
 controlDropdownList = [
     "Single Asset Repline",
