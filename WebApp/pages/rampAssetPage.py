@@ -335,7 +335,7 @@ def run_specific_ramp(
         dcc.Graph(
             figure=px.line(
                 assetRamperMgr.rampStats["ts_metrics"]["repaymentCurve"],
-                y=["intCF", "prinCF"],
+                y=["netIntCF", "prinCF"],
                 x="rampPeriod",
             )
         ),

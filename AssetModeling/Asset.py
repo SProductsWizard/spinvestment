@@ -17,6 +17,9 @@ class AmortizationAsset(Asset):
         self.cprVector = kwargs.get("cprVector")
         self.sevVector = kwargs.get("sevVector")
         self.dqVector = kwargs.get("dqVector")
+        self.servicingFeesRatio = kwargs.get("servicingFeesRatio")
+        if self.servicingFeesRatio is None:
+            self.servicingFeesRatio = 0.008
 
         self.cashflow = self._buildCashflow()
         self.assetStats = self._buildStats()
@@ -84,6 +87,8 @@ class AmortizationAsset(Asset):
                 "dqBal",
                 "prepayPrin",
                 "intCF",
+                "servicingFees",
+                "netIntCF",
                 "defaultPrin",
                 "lossPrin",
                 "recoveryPrin",
@@ -92,6 +97,8 @@ class AmortizationAsset(Asset):
                 "eopBal",
             ]
         ] = np.nan
+        cashflow[["servicingFeesRatio"]] = self.servicingFeesRatio
+
         for i, row in cashflow.iterrows():
 
             if row["period"] == 0:
@@ -103,6 +110,8 @@ class AmortizationAsset(Asset):
                         "dqBal",
                         "prepayPrin",
                         "intCF",
+                        "servicingFees",
+                        "netIntCF",
                         "defaultPrin",
                         "lossPrin",
                         "recoveryPrin",
@@ -153,8 +162,19 @@ class AmortizationAsset(Asset):
                     - cashflow.at[i, "prepayPrin"]
                 )
 
-        cashflow["intCF"] = cashflow["perfBal"] * self.intRate / 12
-        cashflow["totalCF"] = cashflow["intCF"] + cashflow["prinCF"]
+                cashflow.at[i, "servicingFees"] = (
+                    np.average([cashflow.at[i, "bopBal"], cashflow.at[i, "eopBal"]])
+                    * cashflow.at[i, "servicingFeesRatio"]
+                    / 12.0
+                )
+
+                cashflow.at[i, "netIntCF"] = (
+                    cashflow.at[i, "intCF"] - cashflow.at[i, "servicingFees"]
+                )
+
+        # cashflow["intCF"] = cashflow["perfBal"] * self.intRate / 12
+        cashflow["grossTotalCF"] = cashflow["intCF"] + cashflow["prinCF"]
+        cashflow["totalCF"] = cashflow["netIntCF"] + cashflow["prinCF"]
 
         cashflow["cumulativeLossPrin"] = cashflow["lossPrin"].cumsum()
         cashflow["cnl"] = cashflow["cumulativeLossPrin"] / self.notional
@@ -168,11 +188,14 @@ class AmortizationAsset(Asset):
             "dqBal",
             "prepayPrin",
             "intCF",
+            "servicingFees",
+            "netIntCF",
             "defaultPrin",
             "lossPrin",
             "recoveryPrin",
             "schedPrin",
             "prinCF",
+            "grossTotalCF",
             "totalCF",
             "cumulativeLossPrin",
         ]
