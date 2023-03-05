@@ -14,17 +14,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 import plotly.express as px
 
 from app import app
-from pages import (
-    singleAssetReplinePage,
-    rampAssetPage,
-)
+from pages import singleAssetReplinePage, rampAssetPage, warehousePage
 
 
 controlDropdownList = [
     "Single Asset Repline",
     "Ramp Manager",
-    "Structuring Manager",
-    "Portfolio Manager",
+    "Warehouse",
 ]
 
 app.layout = html.Div(
@@ -33,7 +29,8 @@ app.layout = html.Div(
         dcc.Dropdown(
             id="control-dropdown",
             options=[{"label": item, "value": item} for item in controlDropdownList],
-            value=controlDropdownList[0],
+            # value=controlDropdownList[0],
+            value="Warehouse",
         ),
         html.Div(id="page-content"),
     ]
@@ -46,6 +43,8 @@ def display_page(pageValue):
         return singleAssetReplinePage.layout
     elif pageValue == "Ramp Manager":
         return rampAssetPage.layout
+    elif pageValue == "Warehouse":
+        return warehousePage.layout
     else:
         return "To be Developed"
 
