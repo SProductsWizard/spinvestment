@@ -261,6 +261,7 @@ def run_specific_ramp(
         cprvectorInput = replineInput["cprVector"].values[0]
         sevvectorInput = replineInput["sevVector"].values[0]
         dqvectorInput = replineInput["dqVector"].values[0]
+        servicingfeesInput = replineInput["servicingfees"].values[0]
 
         cdrvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
             intexSyntax=cdrvectorInput, term=termInt, divisor=100
@@ -274,6 +275,8 @@ def run_specific_ramp(
         dqvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
             intexSyntax=dqvectorInput, term=termInt, divisor=100
         )
+
+        servicingfeesRatio = float(servicingfeesInput) / 100.0
         replineInstance = Asset.AmortizationAsset(
             notional=notionalFloat,
             term=termInt,
@@ -282,6 +285,7 @@ def run_specific_ramp(
             cprVector=cprvectorList,
             sevVector=sevvectorList,
             dqVector=dqvectorList,
+            servicingFeesRatio=servicingfeesRatio,
         )
         assetList.append(deepcopy(replineInstance))
 

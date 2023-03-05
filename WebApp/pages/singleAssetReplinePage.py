@@ -111,6 +111,15 @@ layout = html.Div(
                             style={"marginRight": "10px"},
                         ),
                         html.Br(),
+                        html.I("ServicingFees (in %)"),
+                        html.Br(),
+                        dcc.Input(
+                            id="servicingfees-input",
+                            type="text",
+                            placeholder="",
+                            style={"marginRight": "10px"},
+                        ),
+                        html.Br(),
                         html.Br(),
                         html.Button(
                             "Load Selected", id="load-select-repline", n_clicks=0
@@ -237,6 +246,7 @@ layout = html.Div(
         State("cprvector-input", "value"),
         State("sevvector-input", "value"),
         State("dqvector-input", "value"),
+        State("servicingfees-input", "value"),
         Input("add-new-repline-to-database", "n_clicks"),
     ],
     prevent_initial_call=True,
@@ -249,6 +259,7 @@ def add_new_repline(
     cprvectorInput,
     sevvectorInput,
     dqvectorInput,
+    servicingfeesInput,
     n_clicks,
 ):
     global assetReplineSnapshot
@@ -261,6 +272,8 @@ def add_new_repline(
     newLine["cprVector"] = cprvectorInput
     newLine["sevVector"] = sevvectorInput
     newLine["dqVector"] = dqvectorInput
+    newLine["servicingfees"] = servicingfeesInput
+
     newLine["archive"] = "FALSE"
     newLine["replineType"] = "amortization"
 
@@ -307,6 +320,7 @@ def add_new_repline(
         State("cprvector-input", "value"),
         State("sevvector-input", "value"),
         State("dqvector-input", "value"),
+        State("servicingfees-input", "value"),
         Input("run-single-repline-cashflow", "n_clicks"),
     ],
     prevent_initial_call=True,
@@ -319,6 +333,7 @@ def run_specific_repline(
     cprvectorInput,
     sevvectorInput,
     dqvectorInput,
+    servicingfeesInput,
     n_clicks,
 ):
 
@@ -338,6 +353,7 @@ def run_specific_repline(
     dqvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
         intexSyntax=dqvectorInput, term=termInt, divisor=100
     )
+    servicingFeesRatio = float(servicingfeesInput) / 100.0
 
     liveRepline = Asset.AmortizationAsset(
         notional=notionalFloat,
@@ -347,11 +363,12 @@ def run_specific_repline(
         cprVector=cprvectorList,
         sevVector=sevvectorList,
         dqVector=dqvectorList,
+        servicingFeesRatio=servicingFeesRatio,
     )
 
     liveCF = liveRepline.cashflow
     liveYieldtable = liveRepline.calculateYieldTable(
-        pxList=[90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100]
+        pxList=[91, 92, 93, 94, 95, 96, 97, 98, 99, 100]
     )
     liveCollatMetrics = liveRepline.getStaticMetrics()
 
@@ -452,6 +469,7 @@ def run_specific_repline(
         Output("cprvector-input", "value"),
         Output("sevvector-input", "value"),
         Output("dqvector-input", "value"),
+        Output("servicingfees-input", "value"),
     ],
     [
         State("repline-table", "data"),
@@ -462,10 +480,10 @@ def run_specific_repline(
 )
 def load_repline_assumption(rows, selected_rows, n_clicks):
     if selected_rows is None:
-        return ["", "", "", "", "", "", ""]
+        return ["", "", "", "", "", "", "", ""]
 
     if len(selected_rows) == 0:
-        return ["", "", "", "", "", "", ""]
+        return ["", "", "", "", "", "", "", ""]
 
     selectId = selected_rows[0]
     selectContent = rows[selectId]
@@ -478,4 +496,5 @@ def load_repline_assumption(rows, selected_rows, n_clicks):
         selectContent["cprVector"],
         selectContent["sevVector"],
         selectContent["dqVector"],
+        selectContent["servicingfees"],
     ]

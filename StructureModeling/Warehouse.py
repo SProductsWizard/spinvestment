@@ -3,10 +3,10 @@ import numpy as np
 import numpy_financial as npf
 import itertools
 from copy import deepcopy
-
+from Utils import SPCFUtils
 
 # to be modeled
-# exit
+# exit (could be modeled on ramper level, instead of warehouse financing level)
 # covenant breach
 
 
@@ -14,7 +14,7 @@ class WarehouseStructure:
     def __init__(self, rampPool, whTerms, exitDetails):
         self.rampPool = rampPool
 
-        self.commitDetails = whTerms.get("commitDetails", {"period": 24})
+        self.commitDetails = whTerms.get("commitDetails", {"period": 1})
 
         self.advRate = whTerms.get("advRate", {"Senior": 70, "Mezz": 85})
 
@@ -61,6 +61,7 @@ class WarehouseStructure:
         self._buildCashflow()
         self._buildAnalysis()
         self._buildStats()
+        self._formatStats()
 
     def _enrichWhTerms(self):
         self.upfrontFeesDollar = deepcopy(self.transactionFees["feeDollars"])
@@ -70,7 +71,9 @@ class WarehouseStructure:
         pre_adv = 0
         for tranche, adv in self.advRate.items():
             advCut = adv - pre_adv
-            self.advRateConvert[tranche] = advCut
+
+            if advCut > 0:
+                self.advRateConvert[tranche] = advCut
             pre_adv = adv
 
         self.effectiveLender = [k for k, v in self.advRateConvert.items() if v > 0]
@@ -89,6 +92,14 @@ class WarehouseStructure:
             ].sum(axis=1)
 
         self.combineDebt = combinDebtFunc
+
+        self.showCashflowSector = lambda x: self.warehouseCashflow.iloc[
+            :, self.warehouseCashflow.columns.get_level_values(0) == x
+        ]
+
+        self.excludeCashflowSector = lambda x: self.warehouseCashflow.iloc[
+            :, self.warehouseCashflow.columns.get_level_values(0) != x
+        ]
 
         return self
 
@@ -410,6 +421,18 @@ class WarehouseStructure:
             * 12.0
         )
 
+        self.warehouseCashflow[
+            ("Facility", "inCommitPeriod")
+        ] = self.warehouseCashflow.index.to_series().apply(
+            lambda x: 1 if x <= self.commitDetails["period"] else 0
+        )
+
+        self.warehouseCashflow[
+            ("Facility", "commitEnd")
+        ] = self.warehouseCashflow.index.to_series().apply(
+            lambda x: 1 if x == self.commitDetails["period"] else 0
+        )
+
         return self
 
     def _buildStats(self):
@@ -443,107 +466,171 @@ class WarehouseStructure:
         ]
 
         # metrics
-        self.warehouseStats["metrics"]["facilityCommitPeriod"] = self.commitDetails[
-            "period"
-        ]
+        self.warehouseStats["metrics"]["facilityCommitPeriod"] = {
+            "value": self.commitDetails["period"],
+            "format": "comma",
+        }
 
         for lender in self.effectiveLender:
-            self.warehouseStats["metrics"][
-                f"{lender}_facilitySize"
-            ] = self.facilitySize[lender]
+            self.warehouseStats["metrics"][f"{lender}_facilitySize"] = {
+                "value": self.facilitySize[lender],
+                "format": "comma",
+            }
 
-            self.warehouseStats["metrics"][f"{lender}_coupon"] = self.coupon[lender]
+            self.warehouseStats["metrics"][f"{lender}_coupon"] = {
+                "value": self.coupon[lender],
+                "format": "pct2",
+            }
 
-            self.warehouseStats["metrics"][f"{lender}_undrawnFee"] = self.undrawnFee[
-                lender
-            ]
+            self.warehouseStats["metrics"][f"{lender}_undrawnFee"] = {
+                "value": self.undrawnFee[lender],
+                "format": "pct2",
+            }
 
-            self.warehouseStats["metrics"][
-                f"{lender}_couponCollected"
-            ] = self.warehouseCashflow[(lender, "couponPaid")].sum()
+            self.warehouseStats["metrics"][f"{lender}_couponCollected"] = {
+                "value": self.warehouseCashflow[(lender, "couponPaid")].sum(),
+                "format": "comma",
+            }
 
-            self.warehouseStats["metrics"][
-                f"{lender}_undrawnFeeCollected"
-            ] = self.warehouseCashflow[(lender, "undrawnFeePaid")].sum()
+            self.warehouseStats["metrics"][f"{lender}_undrawnFeeCollected"] = {
+                "value": self.warehouseCashflow[(lender, "undrawnFeePaid")].sum(),
+                "format": "comma",
+            }
 
-        self.warehouseStats["metrics"]["totalCashflow"] = (
-            self.warehouseCashflow[("Asset", "repaymentCash")].sum().sum()
+        self.warehouseStats["metrics"]["totalCashflow"] = {
+            "value": (self.warehouseCashflow[("Asset", "repaymentCash")].sum().sum()),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["feesCashflow"] = {
+            "value": (self.warehouseCashflow[self.feesColumns].sum().sum()),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["debtCouponCashflow"] = {
+            "value": (
+                self.warehouseCashflow[self.lenderColumnsGroup("couponPaid")]
+                .sum()
+                .sum()
+                + self.warehouseCashflow[self.lenderColumnsGroup("undrawnFeePaid")]
+                .sum()
+                .sum()
+            ),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["debtPrinCashflow"] = {
+            "value": (self.warehouseCashflow[self.feesColumns].sum().sum()),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["residCashflow"] = {
+            "value": (
+                self.warehouseCashflow[("Residual", "repaymentCash")].sum().sum()
+            ),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["assetNetYield"] = {
+            "value": self.rampPool.rampStats["metrics"]["Unlevered Yield"],
+            "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["assetNetYieldPostFees"] = {
+            "value": (
+                npf.irr(
+                    self.warehouseCashflow[("Asset", "investmentCashDeductFees")].values
+                )
+                * 12
+            ),
+            "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["debtCost"] = {
+            "value": (
+                self.warehouseCashflow[("Debt", "debtCostDollar")].sum()
+                / self.warehouseCashflow[("Debt", "eopBal")].sum()
+                * 12
+            ),
+            "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["effectiveAdvRate"] = {
+            "value": (
+                self.warehouseCashflow[("Debt", "eopBal")].sum()
+                / self.warehouseCashflow[("Asset", "eopBal")].sum()
+                * 100
+            ),
+            "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["leverageRatio"] = {
+            "value": 1
+            / (1 - self.warehouseStats["metrics"]["effectiveAdvRate"]["value"] / 100.0),
+            "format": "comma2",
+        }
+
+        self.warehouseStats["metrics"]["NIM"] = {
+            "value": (
+                self.warehouseStats["metrics"]["assetNetYieldPostFees"]["value"]
+                - self.warehouseStats["metrics"]["debtCost"]["value"]
+                * self.warehouseStats["metrics"]["effectiveAdvRate"]["value"]
+                / 100.0
+            ),
+            "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["impliedROE"] = {
+            "value": (
+                self.warehouseStats["metrics"]["NIM"]["value"]
+                * self.warehouseStats["metrics"]["leverageRatio"]["value"]
+            ),
+            "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["assetPurchased"] = {
+            "value": self.warehouseCashflow[("Asset", "rampSize")].sum(),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["peakDebt"] = {
+            "value": self.warehouseCashflow[("Debt", "eopBal")].max(),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["peakDebtPeriod"] = {
+            "value": self.warehouseCashflow[("Debt", "eopBal")].idxmax(),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["debtPaidDownPeriod"] = {
+            "value": self.warehouseCashflow[("Debt", "eopBal")].idxmin(),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["residROE"] = {
+            "value": (
+                npf.irr(self.warehouseCashflow[("Residual", "investmentCF")].values)
+                * 12
+            ),
+            "format": "pct2",
+        }
+
+    def _formatStats(self):
+        for k, v in self.warehouseStats["metrics"].items():
+
+            self.warehouseStats["metrics"][k][
+                "formatValue"
+            ] = SPCFUtils.SPCFUtils.financeFormatNumber(v["value"], v["format"])
+
+        self.formatWarehouseEcoStats = pd.DataFrame(
+            self.warehouseStats["metrics"]
+        ).T.reset_index()
+        self.formatWarehouseEcoStats = self.formatWarehouseEcoStats[
+            ["index", "formatValue"]
+        ]
+        self.formatWarehouseEcoStats = self.formatWarehouseEcoStats.rename(
+            columns={"index": "metrics", "formatValue": "value"}
         )
 
-        self.warehouseStats["metrics"]["feesCashflow"] = (
-            self.warehouseCashflow[self.feesColumns].sum().sum()
-        )
-
-        self.warehouseStats["metrics"]["debtCouponCashflow"] = (
-            self.warehouseCashflow[self.lenderColumnsGroup("couponPaid")].sum().sum()
-            + self.warehouseCashflow[self.lenderColumnsGroup("undrawnFeePaid")]
-            .sum()
-            .sum()
-        )
-
-        self.warehouseStats["metrics"]["debtPrinCashflow"] = (
-            self.warehouseCashflow[self.lenderColumnsGroup("paidDownPrin")].sum().sum()
-        )
-
-        self.warehouseStats["metrics"]["residCashflow"] = (
-            self.warehouseCashflow[("Residual", "repaymentCash")].sum().sum()
-        )
-
-        self.warehouseStats["metrics"]["assetNetYield"] = self.rampPool.rampStats[
-            "metrics"
-        ]["Unlevered Yield"]
-
-        self.warehouseStats["metrics"]["assetNetYieldPostFees"] = (
-            npf.irr(
-                self.warehouseCashflow[("Asset", "investmentCashDeductFees")].values
-            )
-            * 12
-        )
-
-        self.warehouseStats["metrics"]["debtCost"] = (
-            self.warehouseCashflow[("Debt", "debtCostDollar")].sum()
-            / self.warehouseCashflow[("Debt", "eopBal")].sum()
-            * 12
-        )
-
-        self.warehouseStats["metrics"]["effectiveAdvRate"] = (
-            self.warehouseCashflow[("Debt", "eopBal")].sum()
-            / self.warehouseCashflow[("Asset", "eopBal")].sum()
-            * 100
-        )
-
-        self.warehouseStats["metrics"]["leverageRatio"] = 1 / (
-            1 - self.warehouseStats["metrics"]["effectiveAdvRate"] / 100.0
-        )
-
-        self.warehouseStats["metrics"]["NIM"] = (
-            self.warehouseStats["metrics"]["assetNetYieldPostFees"]
-            - self.warehouseStats["metrics"]["debtCost"]
-            * self.warehouseStats["metrics"]["effectiveAdvRate"]
-            / 100.0
-        )
-
-        self.warehouseStats["metrics"]["impliedROE"] = (
-            self.warehouseStats["metrics"]["NIM"]
-            * self.warehouseStats["metrics"]["leverageRatio"]
-        )
-
-        self.warehouseStats["metrics"]["assetPurchased"] = self.warehouseCashflow[
-            ("Asset", "rampSize")
-        ].sum()
-
-        self.warehouseStats["metrics"]["peakDebt"] = self.warehouseCashflow[
-            ("Debt", "eopBal")
-        ].max()
-
-        self.warehouseStats["metrics"]["peakDebtPeriod"] = self.warehouseCashflow[
-            ("Debt", "eopBal")
-        ].idxmax()
-
-        self.warehouseStats["metrics"]["debtPaidDownPeriod"] = self.warehouseCashflow[
-            ("Debt", "eopBal")
-        ].idxmin()
-
-        self.warehouseStats["metrics"]["residROE"] = (
-            npf.irr(self.warehouseCashflow[("Residual", "investmentCF")].values) * 12
-        )
+        return self
