@@ -16,7 +16,7 @@ import plotly.express as px
 from app import app
 from pages import singleAssetReplinePage, rampAssetPage, warehousePage
 
-
+server = app.server
 controlDropdownList = [
     "Single Asset Repline",
     "Ramp Manager",

@@ -147,8 +147,8 @@ def rampInputsGroup(pageTitle):
 
 warehouseTranchesTerms = pd.DataFrame(
     data=[
-        ["Senior", "70", "5.0%", "0.0%", "100mm"],
-        ["Mezz", "85", "10.0%", "0.0%", "20mm"],
+        ["Senior", "67", "5.5%", "0.0%", "100mm"],
+        ["Mezz", "80", "10.5%", "0.0%", "20mm"],
     ],
     columns=["Tranche", "advRate", "coupon", "undrawnFee", "facilitySize"],
 )
