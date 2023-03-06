@@ -67,7 +67,12 @@ layout = html.Div(
         ),
         html.Hr(),
         html.H4(children="Warehouse Run Results"),
-        html.Button("Run Warehouse", id="run-warehouse", n_clicks=0),
+        html.Button(
+            "Run Warehouse",
+            id="run-warehouse",
+            n_clicks=0,
+            style={"background-color": "#FFF8DC"},
+        ),
         html.Div(
             id="warehouse-run-results-output",
             children=[

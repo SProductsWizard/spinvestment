@@ -561,7 +561,7 @@ class WarehouseStructure:
                 / self.warehouseCashflow[("Asset", "eopBal")].sum()
                 * 100
             ),
-            "format": "pct2",
+            "format": "comma2",
         }
 
         self.warehouseStats["metrics"]["leverageRatio"] = {
@@ -614,6 +614,23 @@ class WarehouseStructure:
                 * 12
             ),
             "format": "pct2",
+        }
+
+        self.warehouseStats["metrics"]["residPnL"] = {
+            "value": self.warehouseCashflow[("Residual", "investmentCF")].sum(),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["residInvestmented"] = {
+            "value": -1.0
+            * self.warehouseCashflow[("Residual", "cashInvestment")].sum(),
+            "format": "comma",
+        }
+
+        self.warehouseStats["metrics"]["residMOIC"] = {
+            "value": self.warehouseCashflow[("Residual", "repaymentCash")].sum()
+            / self.warehouseStats["metrics"]["residInvestmented"]["value"],
+            "format": "comma2",
         }
 
     def _formatStats(self):
