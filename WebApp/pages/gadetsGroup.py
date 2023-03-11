@@ -1,148 +1,110 @@
-import dash_core_components as dcc
-import dash_html_components as html
-from dash import dash_table
+from dash import dcc, html, dash_table
 import pandas as pd
-
-import sys
-import os
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-from app import app, db_mgr
-from app import Asset, AssetRamper, SPCFUtils
+from dash.dependencies import Output, State
 
 
-def assetInputsGroup(pageTitle):
-    return [
-        html.Hr(),
-        html.I("Notional"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-notional-input",
-            type="text",
-            placeholder="10,000,000",
-            value="10,000,000",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("Term"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-term-input",
-            type="text",
-            placeholder="36",
-            value="36",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("IntRate"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-intrate-input",
-            type="text",
-            placeholder="20%",
-            value="20%",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("CDRVector"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-cdrvector-input",
-            type="text",
-            placeholder="1 ramp 20 15",
-            value="1 ramp 20 15",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("CPRVector"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-cprvector-input",
-            type="text",
-            placeholder="5 ramp 5 10",
-            value="5 ramp 5 10",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("SEVVector"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-sevvector-input",
-            type="text",
-            placeholder="90",
-            value="90",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("DQVector"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-dqvector-input",
-            type="text",
-            placeholder="1 ramp 6 6",
-            value="1 ramp 6 6",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("ServicingFees"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-asset-servicingfees-input",
-            type="text",
-            placeholder="0.75%",
-            value="0.75%",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-    ]
+class GadgetsWrapper:
+    def __init__(self, pageTitle):
+        self.pageTitle = pageTitle
+        self.entries = self._setupEntries()
+        self.defaultValueList = self._setDefaultValue()
+        self.titleList = self._setTitle()
+
+        self.layout = self._setupLayout()
+
+    def _setupEntries(self):
+        return []
+
+    def _setDefaultValue(self):
+        return ""
+
+    def _setTitle(self):
+        return ""
+
+    def getState(self):
+        return [State(item, "value") for item in self.entries]
+
+    def getOutput(self):
+        return [Output(item, "value") for item in self.entries]
+
+    def _setupLayout(self):
+        res = [html.Hr()]
+
+        for entryValue, defaultValue, title in zip(
+            self.entries, self.defaultValueList, self.titleList
+        ):
+            res = res + [
+                html.I(title),
+                html.Br(),
+                dcc.Input(
+                    id=entryValue,
+                    type="text",
+                    placeholder=defaultValue,
+                    value=defaultValue,
+                    style={"marginRight": "10px"},
+                ),
+                html.Br(),
+                html.Br(),
+            ]
+
+        return res
 
 
-def rampInputsGroup(pageTitle):
-    return [
-        html.Hr(),
-        html.I("Commit Period"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-ramp-commit-period-input",
-            type="text",
-            placeholder="6",
-            value="6",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("Size Vector (mm)"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-ramp-size-vector-input",
-            type="text",
-            placeholder="20",
-            value="20",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-        html.I("Px Vector"),
-        html.Br(),
-        dcc.Input(
-            id=f"{pageTitle}-ramp-px-vector-input",
-            type="text",
-            placeholder="99",
-            value="99",
-            style={"marginRight": "10px"},
-        ),
-        html.Br(),
-        html.Br(),
-    ]
+class AssetInputsGadetsGroup(GadgetsWrapper):
+    def _setupEntries(self):
+        return [
+            f"{self.pageTitle}-asset-notional-input",
+            f"{self.pageTitle}-asset-term-input",
+            f"{self.pageTitle}-asset-intrate-input",
+            f"{self.pageTitle}-asset-cdrvector-input",
+            f"{self.pageTitle}-asset-cprvector-input",
+            f"{self.pageTitle}-asset-sevvector-input",
+            f"{self.pageTitle}-asset-dqvector-input",
+            f"{self.pageTitle}-asset-servicingfees-input",
+        ]
+
+    def _setDefaultValue(self):
+        return [
+            "10,000,000",
+            "36",
+            "20%",
+            "1 ramp 20 15",
+            "5 ramp 5 10",
+            "90",
+            "1 ramp 6 6",
+            "0.75%",
+        ]
+
+    def _setTitle(self):
+        return [
+            "Notional",
+            "Term",
+            "IntRate",
+            "CDRVector",
+            "CPRVector",
+            "SEVVector",
+            "DQVector",
+            "ServicingFees",
+        ]
+
+
+class RampInputsGadgetsGroup(GadgetsWrapper):
+    def _setupEntries(self):
+        return [
+            f"{self.pageTitle}-ramp-commit-period-input",
+            f"{self.pageTitle}-ramp-size-vector-input",
+            f"{self.pageTitle}-ramp-px-vector-input",
+        ]
+
+    def _setDefaultValue(self):
+        return [
+            "6",
+            "20",
+            "99",
+        ]
+
+    def _setTitle(self):
+        return ["Commit Period", "Size Vector (mm)", "Px Vector"]
 
 
 warehouseTranchesTerms = pd.DataFrame(

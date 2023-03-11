@@ -1,20 +1,10 @@
-import dash_core_components as dcc
-import dash_html_components as html
-from dash import dash_table
-import plotly.graph_objs as go
+from dash import dcc, html, dash_table
 import plotly.express as px
-from plotly.subplots import make_subplots
-import sys
-import os
 from dash.dependencies import Input, Output, State
-import pandas as pd
 from copy import deepcopy
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-
-from app import app, db_mgr
-from app import Asset, AssetRamper, SPCFUtils
+from spcashflow.WebApp.app import *
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
