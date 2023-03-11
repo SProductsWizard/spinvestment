@@ -1,27 +1,21 @@
-import dash_core_components as dcc
-import dash_html_components as html
-from dash import dash_table
+from dash import dcc, html, dash_table
 import plotly.graph_objs as go
 import plotly.express as px
-from plotly.subplots import make_subplots
-import sys
-import os
+
 from dash.dependencies import Input, Output, State
-import pandas as pd
-from copy import deepcopy
 
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-import pages.gadetsGroup as gadetsGroup
-from app import app, db_mgr
-from app import Asset, AssetRamper, Warehouse, SPCFUtils
+import spcashflow.WebApp.pages.gadetsGroup as gadetsGroup
+from spcashflow.WebApp.app import *
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
 rampPoolSnapshot = db_mgr.load_rampPool()
 
 pageTitle = "warehousePage"
+assetInputsGadgets = gadetsGroup.AssetInputsGadetsGroup(pageTitle=pageTitle)
+rampInputsGadgets = gadetsGroup.RampInputsGadgetsGroup(pageTitle=pageTitle)
+
 layout = html.Div(
     [
         html.H4(children="Warehouse Modeling Input"),
@@ -35,7 +29,7 @@ layout = html.Div(
                         html.I("Asset Modeling Input"),
                         html.Div(
                             id="warehouse-modeling-asset-input-content",
-                            children=gadetsGroup.assetInputsGroup(pageTitle),
+                            children=assetInputsGadgets.layout,
                         ),
                     ],
                     style=dict(width="20%"),
@@ -46,7 +40,7 @@ layout = html.Div(
                         html.I("Ramp Modeling Input"),
                         html.Div(
                             id="warehouse-modeling-ramp-input-content",
-                            children=gadetsGroup.rampInputsGroup(pageTitle),
+                            children=rampInputsGadgets.layout,
                         ),
                     ],
                     style=dict(width="20%"),
@@ -134,18 +128,9 @@ layout = html.Div(
         Output("warehouse-chart3", "children"),
         Output("warehouse-chart4", "children"),
     ],
-    [
-        State(f"{pageTitle}-asset-notional-input", "value"),
-        State(f"{pageTitle}-asset-term-input", "value"),
-        State(f"{pageTitle}-asset-intrate-input", "value"),
-        State(f"{pageTitle}-asset-cdrvector-input", "value"),
-        State(f"{pageTitle}-asset-cprvector-input", "value"),
-        State(f"{pageTitle}-asset-sevvector-input", "value"),
-        State(f"{pageTitle}-asset-dqvector-input", "value"),
-        State(f"{pageTitle}-asset-servicingfees-input", "value"),
-        State(f"{pageTitle}-ramp-commit-period-input", "value"),
-        State(f"{pageTitle}-ramp-size-vector-input", "value"),
-        State(f"{pageTitle}-ramp-px-vector-input", "value"),
+    assetInputsGadgets.getState()
+    + rampInputsGadgets.getState()
+    + [
         State(f"{pageTitle}-warehouse-commit-period-input", "value"),
         State(f"{pageTitle}-warehouse-tranch-terms-input", "data"),
         State(f"{pageTitle}-warehouse-fee-dollar-input", "data"),
@@ -256,10 +241,6 @@ def run_warehouse(
     )
     warehouseMgr = Warehouse.WarehouseStructure(
         rampPool=assetRamperMgr, whTerms=warehouseWhTerms, exitDetails={}
-    )
-
-    warehouseMgr.warehouseCashflow.to_csv(
-        "/Users/hongfan/Documents/SP/Projects/SProductsWizard/spcashflow/warehouseCashflowTest.csv"
     )
 
     warehouseEcoStatsTable = warehouseMgr.formatWarehouseEcoStats

@@ -1,22 +1,15 @@
-import dash_core_components as dcc
-import dash_html_components as html
-from dash import dash_table
-import plotly.graph_objs as go
+from dash import dcc, html, dash_table
 import plotly.express as px
-from plotly.subplots import make_subplots
-import sys
-import os
 from dash.dependencies import Input, Output, State
 import pandas as pd
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spcashflow.WebApp.app import *
 
-
-from app import app, db_mgr
-from app import Asset, AssetRamper, SPCFUtils
-
+import spcashflow.WebApp.pages.gadetsGroup as gadetsGroup
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
+pageTitle = "singleAssetRepline"
+assetInputsGadgets = gadetsGroup.AssetInputsGadetsGroup(pageTitle=pageTitle)
 
 layout = html.Div(
     [
@@ -48,76 +41,10 @@ layout = html.Div(
                 html.Div(
                     id="repline-terms-inputs",
                     children=[
-                        html.I("Notional"),
-                        html.Br(),
-                        dcc.Input(
-                            id="notional-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("Term"),
-                        html.Br(),
-                        dcc.Input(
-                            id="term-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("IntRate"),
-                        html.Br(),
-                        dcc.Input(
-                            id="intrate-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("CDRVector"),
-                        html.Br(),
-                        dcc.Input(
-                            id="cdrvector-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("CPRVector"),
-                        html.Br(),
-                        dcc.Input(
-                            id="cprvector-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("SEVVector"),
-                        html.Br(),
-                        dcc.Input(
-                            id="sevvector-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("DQVector"),
-                        html.Br(),
-                        dcc.Input(
-                            id="dqvector-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
-                        ),
-                        html.Br(),
-                        html.I("ServicingFees (in %)"),
-                        html.Br(),
-                        dcc.Input(
-                            id="servicingfees-input",
-                            type="text",
-                            placeholder="",
-                            style={"marginRight": "10px"},
+                        html.I("Asset Modeling Input"),
+                        html.Div(
+                            id="repline-modeling-asset-input-content",
+                            children=assetInputsGadgets.layout,
                         ),
                         html.Br(),
                         html.Br(),
@@ -312,58 +239,47 @@ def add_new_repline(
         Output("cnl-curve-content", "children"),
         Output("factor-curve-content", "children"),
     ],
-    [
-        State("notional-input", "value"),
-        State("term-input", "value"),
-        State("intrate-input", "value"),
-        State("cdrvector-input", "value"),
-        State("cprvector-input", "value"),
-        State("sevvector-input", "value"),
-        State("dqvector-input", "value"),
-        State("servicingfees-input", "value"),
-        Input("run-single-repline-cashflow", "n_clicks"),
-    ],
+    assetInputsGadgets.getState() + [Input("run-single-repline-cashflow", "n_clicks")],
     prevent_initial_call=True,
 )
 def run_specific_repline(
-    notionalInput,
-    termInput,
-    intrateInput,
-    cdrvectorInput,
-    cprvectorInput,
-    sevvectorInput,
-    dqvectorInput,
-    servicingfeesInput,
+    assetNotionalInput,
+    assetTermInput,
+    assetIntrateInput,
+    assetCdrvectorInput,
+    assetCprvectorInput,
+    assetSevvectorInput,
+    assetDqvectorInput,
+    assetServicingfeesInput,
     n_clicks,
 ):
 
-    notionalFloat = float(notionalInput)
-    termInt = int(termInput)
-    intrateFloat = float(intrateInput)
-
-    cdrvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
-        intexSyntax=cdrvectorInput, term=termInt, divisor=100
+    assetNotional = SPCFUtils.SPCFUtils.convertStrFloat(assetNotionalInput)
+    assetTerm = int(SPCFUtils.SPCFUtils.convertStrFloat(assetTermInput))
+    assetIntrate = SPCFUtils.SPCFUtils.convertStrFloat(assetIntrateInput)
+    assetCdrvector = SPCFUtils.SPCFUtils.convertIntexRamp(
+        assetCdrvectorInput, assetTerm, divisor=100
     )
-    cprvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
-        intexSyntax=cprvectorInput, term=termInt, divisor=100
+    assetCprvector = SPCFUtils.SPCFUtils.convertIntexRamp(
+        assetCprvectorInput, assetTerm, divisor=100
     )
-    sevvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
-        intexSyntax=sevvectorInput, term=termInt, divisor=100
+    assetSevvector = SPCFUtils.SPCFUtils.convertIntexRamp(
+        assetSevvectorInput, assetTerm, divisor=100
     )
-    dqvectorList = SPCFUtils.SPCFUtils.convertIntexRamp(
-        intexSyntax=dqvectorInput, term=termInt, divisor=100
+    assetDqvector = SPCFUtils.SPCFUtils.convertIntexRamp(
+        assetDqvectorInput, assetTerm, divisor=100
     )
-    servicingFeesRatio = float(servicingfeesInput) / 100.0
+    assetServicingfees = SPCFUtils.SPCFUtils.convertStrFloat(assetServicingfeesInput)
 
     liveRepline = Asset.AmortizationAsset(
-        notional=notionalFloat,
-        term=termInt,
-        intRate=intrateFloat,
-        cdrVector=cdrvectorList,
-        cprVector=cprvectorList,
-        sevVector=sevvectorList,
-        dqVector=dqvectorList,
-        servicingFeesRatio=servicingFeesRatio,
+        notional=assetNotional,
+        term=assetTerm,
+        intRate=assetIntrate,
+        cdrVector=assetCdrvector,
+        cprVector=assetCprvector,
+        sevVector=assetSevvector,
+        dqVector=assetDqvector,
+        servicingFeesRatio=assetServicingfees,
     )
 
     liveCF = liveRepline.cashflow
@@ -461,16 +377,7 @@ def run_specific_repline(
 
 
 @app.callback(
-    [
-        Output("notional-input", "value"),
-        Output("term-input", "value"),
-        Output("intrate-input", "value"),
-        Output("cdrvector-input", "value"),
-        Output("cprvector-input", "value"),
-        Output("sevvector-input", "value"),
-        Output("dqvector-input", "value"),
-        Output("servicingfees-input", "value"),
-    ],
+    assetInputsGadgets.getOutput(),
     [
         State("repline-table", "data"),
         State("repline-table", "selected_rows"),

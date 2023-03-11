@@ -1,20 +1,15 @@
-import dash
-import plotly
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_table
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
-
 
 import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
-import plotly.express as px
+from spcashflow.WebApp.app import app
+from spcashflow.WebApp.pages import singleAssetReplinePage, rampAssetPage, warehousePage
 
-from app import app
-from pages import singleAssetReplinePage, rampAssetPage, warehousePage
 
 server = app.server
 controlDropdownList = [
