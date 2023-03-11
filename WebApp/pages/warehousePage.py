@@ -1,12 +1,12 @@
-from dash import dcc, html, dash_table
+from dash import dcc, html, dash_table, callback
 import plotly.graph_objs as go
 import plotly.express as px
 
 from dash.dependencies import Input, Output, State
 
 
-import spcashflow.WebApp.pages.gadetsGroup as gadetsGroup
-from spcashflow.WebApp.appResources import *
+import WebApp.gadgetsUtil.gadetsGroup as gadetsGroup
+from WebApp.appBackendResources import *
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
@@ -120,7 +120,7 @@ layout = html.Div(
 )
 
 
-@app.callback(
+@callback(
     [
         Output("warehouse-eco-stats-content", "children"),
         Output("warehouse-chart1", "children"),

@@ -1,11 +1,11 @@
-from dash import dcc, html, dash_table
+from dash import dcc, html, dash_table, callback
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 import pandas as pd
 
-from spcashflow.WebApp.appResources import *
+from WebApp.appBackendResources import *
 
-import spcashflow.WebApp.pages.gadetsGroup as gadetsGroup
+import WebApp.gadgetsUtil.gadetsGroup as gadetsGroup
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
 pageTitle = "singleAssetRepline"
@@ -163,7 +163,7 @@ layout = html.Div(
 )
 
 
-@app.callback(
+@callback(
     Output("repline-table-div", "children"),
     [
         State("notional-input", "value"),
@@ -227,7 +227,7 @@ def add_new_repline(
     )
 
 
-@app.callback(
+@callback(
     [
         Output("yield-table-content", "children"),
         Output("collat-static-metrics-content", "children"),
@@ -376,7 +376,7 @@ def run_specific_repline(
     ]
 
 
-@app.callback(
+@callback(
     assetInputsGadgets.getOutput(),
     [
         State("repline-table", "data"),

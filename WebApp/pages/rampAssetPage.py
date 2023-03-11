@@ -1,10 +1,10 @@
-from dash import dcc, html, dash_table
+from dash import dcc, html, dash_table, callback
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 from copy import deepcopy
 
 
-from spcashflow.WebApp.appResources import *
+from WebApp.appBackendResources import *
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
@@ -163,7 +163,7 @@ layout = html.Div(
 )
 
 
-@app.callback(
+@callback(
     [
         Output("repline-vector-input", "value"),
         Output("size-vector-input", "value"),
@@ -195,7 +195,7 @@ def load_ramp_assumptions(rows, selected_rows, n_clicks):
     ]
 
 
-@app.callback(
+@callback(
     [
         Output("ramp-pool-cashflowtable", "children"),
         Output("ramp-static-metrics-content", "children"),
