@@ -3,7 +3,7 @@ import plotly.express as px
 from dash.dependencies import Input, Output, State
 import pandas as pd
 
-from spcashflow.WebApp.app import *
+from spcashflow.WebApp.appResources import *
 
 import spcashflow.WebApp.pages.gadetsGroup as gadetsGroup
 

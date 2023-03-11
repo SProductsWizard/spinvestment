@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output, State
 
 
 import spcashflow.WebApp.pages.gadetsGroup as gadetsGroup
-from spcashflow.WebApp.app import *
+from spcashflow.WebApp.appResources import *
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()

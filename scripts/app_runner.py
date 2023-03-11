@@ -7,7 +7,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
-from spcashflow.WebApp.app import app
+from spcashflow.WebApp.appResources import app
 from spcashflow.WebApp.pages import singleAssetReplinePage, rampAssetPage, warehousePage
 
 
@@ -42,7 +42,3 @@ def display_page(pageValue):
         return warehousePage.layout
     else:
         return "To be Developed"
-
-
-if __name__ == "__main__":
-    app.run_server(debug=True)

@@ -4,7 +4,7 @@ from dash.dependencies import Input, Output, State
 from copy import deepcopy
 
 
-from spcashflow.WebApp.app import *
+from spcashflow.WebApp.appResources import *
 
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
