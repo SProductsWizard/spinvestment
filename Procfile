@@ -1,1 +1,1 @@
-web: gunicorn ./scripts/app_runner:server
+web: gunicorn app:server
