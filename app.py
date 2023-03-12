@@ -38,32 +38,32 @@ controlDropdownList = [
 app.layout = html.Div(
     [
         html.H1("Structured Products Investment Tookit", id="header"),
-        html.Div(
-            id="main-content-canvas",
-            children=[
-                html.Div(
-                    id="main-content-left-canvas",
-                    children=menuPage.layout,
-                    style=dict(width="20%"),
-                ),
-                html.Hr(),
-                html.Div(
-                    id="main-content-right-canvas",
-                    style=dict(width="80%"),
-                    children=[
-                        html.Div(
-                            id="main-content-right-upper-canvas",
-                            children=menuPage.subMenu,
-                        ),
-                        html.Div(
-                            id="main-content-right-lower-canvas",
-                            children=menuPage.content,
-                        ),
-                    ],
-                ),
-            ],
-            style=dict(display="flex"),
-        ),
+        # html.Div(
+        #     id="main-content-canvas",
+        #     children=[
+        #         html.Div(
+        #             id="main-content-left-canvas",
+        #             children=menuPage.layout,
+        #             style=dict(width="20%"),
+        #         ),
+        #         html.Hr(),
+        #         html.Div(
+        #             id="main-content-right-canvas",
+        #             style=dict(width="80%"),
+        #             children=[
+        #                 html.Div(
+        #                     id="main-content-right-upper-canvas",
+        #                     children=menuPage.subMenu,
+        #                 ),
+        #                 html.Div(
+        #                     id="main-content-right-lower-canvas",
+        #                     children=menuPage.content,
+        #                 ),
+        #             ],
+        #         ),
+        #     ],
+        #     style=dict(display="flex"),
+        # ),
         # dcc.Dropdown(
         #     id="control-dropdown",
         #     options=[{"label": item, "value": item} for item in controlDropdownList],
