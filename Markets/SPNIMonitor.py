@@ -9,7 +9,7 @@ from Utils.SPCFUtils import SPCFUtils
 
 class ABSNIMonitor:
     def __init__(self):
-        atlasDriver = AtlasDriver(readOnly=True)
+        self.atlasDriver = AtlasDriver(readOnly=True)
         self.ABSNIBondDfRaw = AtlasDriver().load_data("FinsightNIBond")
         self.ABSNIDealDfRaw = AtlasDriver().load_data("FinsightNIDeal")
         self._cleanData()
@@ -56,6 +56,12 @@ class ABSNIMonitor:
         )
 
         self.ABSNIBondDf["SZE"] = self.ABSNIBondDf["SZE 1"] + self.ABSNIBondDf["SZE 2"]
+
+        self.ABSNIBondDf = self.ABSNIBondDf.drop(
+            columns=["SZE 1", "SZE 2", "SZE (M)", "SZE(M)"], axis=1
+        )
+
+        self.ABSNIBondDf["SZE(M)"] = self.ABSNIBondDf["SZE"] / 1e6
 
         # Pricing Year
         self.ABSNIBondDf["PRICING YEAR"] = self.ABSNIBondDf["PRICING DATE"].apply(
@@ -247,6 +253,36 @@ class ABSNIMonitor:
                 "Shelf": self._consumerLoanTop10Shelf,
             },
         )
+
+    def getDisplayDf(self):
+        df = self.ABSNIBondDf[
+            [
+                "Sector",
+                "Subsector",
+                "PRICING DATE",
+                "Deal Name",
+                "Class",
+                "SZE(M)",
+                "WAL",
+                "MO",
+                "SP",
+                "FI",
+                "DR",
+                "KR",
+                "MS",
+                "LowestRatings",
+                "FX/FL",
+                "BNCH",
+                "SPRD",
+                "CPN",
+                "YLD",
+            ]
+        ].copy()
+        df = df.sort_values(
+            by=["PRICING DATE", "Deal Name", "Class"], ascending=[False, True, True]
+        )
+
+        return df
 
     def runsubsectorVolume(
         self, subsector, pricingyear=[2018, 2019, 2020, 2021, 2022, 2023]

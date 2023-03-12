@@ -1,7 +1,7 @@
 from dash import html, dcc
 
 import dash
-from WebApp.pages import menuPage
+from WebApp.pages import masterPage
 
 app = dash.Dash(__name__)
 server = app.server
@@ -16,21 +16,21 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     id="main-content-left-canvas",
-                    children=menuPage.layout,
-                    style=dict(width="20%"),
+                    children=masterPage.layout,
+                    style=dict(width="10%"),
                 ),
                 html.Hr(),
                 html.Div(
                     id="main-content-right-canvas",
-                    style=dict(width="80%"),
+                    style=dict(width="90%"),
                     children=[
                         html.Div(
                             id="main-content-right-upper-canvas",
-                            children=menuPage.subMenu,
+                            children=masterPage.subMenu,
                         ),
                         html.Div(
                             id="main-content-right-lower-canvas",
-                            children=menuPage.content,
+                            children=masterPage.content,
                         ),
                     ],
                 ),

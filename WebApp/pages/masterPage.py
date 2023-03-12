@@ -11,12 +11,24 @@ from WebApp.pages import (
     rampAssetPage,
     warehousePage,
     databaseStatusPage,
+    absOverviewPage,
+    consumerLoanPage,
+    subprimeAutoPage,
 )
 
 menuDict = {
-    "Public Market Dashboard": ["ABS Overview", "Subprime Auto", "Consumer Loan"],
+    "Public Market Dashboard": [
+        "ABS Overview",
+        "Subprime Auto",
+        "Consumer Loan",
+    ],
     "Credit Drill": ["Vintage Curves", "Remits Drill"],
-    "Private Deal Maker": ["Repline Modeling", "Ramp Modeling", "Warehouse"],
+    "Private Deal Maker": [
+        "Repline Modeling",
+        "Ramp Modeling",
+        "Warehouse",
+        "ABS Securitization",
+    ],
     "Reserch Hub": ["Dealers Research", "Research Scratches"],
     "Street": ["Two Way Market"],
     "Database Management": ["Database Status", "Manage Database"],
@@ -32,7 +44,7 @@ submenuTabs = gadetsGroup.TabsGroup(
 
 layout = menuTabs.layout
 subMenu = html.Div(children=html.Div(id="submenu-div"))
-content = html.Div("this is to be developed", id="content-div")
+content = html.Div("Loading....", id="content-div")
 
 
 @callback(
@@ -50,14 +62,25 @@ def clickMenu(tabValue):
     [State(menuTabs.tabId, "value"), Input(submenuTabs.tabId, "value")],
 )
 def clickSubMenu(menuValue, submenuValue):
+    if menuValue == "tab-publicMarketDashboard":
+        if submenuValue == "tab-absOverview":
+            return absOverviewPage.layout
+        elif submenuValue == "tab-consumerLoan":
+            return consumerLoanPage.layout
+        elif submenuValue == "tab-subprimeAuto":
+            return subprimeAutoPage.layout
 
-    if submenuValue == "tab-replineModeling":
-        return singleAssetReplinePage.layout
-    elif submenuValue == "tab-rampModeling":
-        return rampAssetPage.layout
-    elif submenuValue == "tab-warehouse":
-        return warehousePage.layout
-    elif submenuValue == "tab-databaseStatus":
-        return databaseStatusPage.layout
+    elif menuValue == "tab-privateDealMaker":
+        if submenuValue == "tab-replineModeling":
+            return singleAssetReplinePage.layout
+        elif submenuValue == "tab-rampModeling":
+            return rampAssetPage.layout
+        elif submenuValue == "tab-warehouse":
+            return warehousePage.layout
+
+    elif menuValue == "tab-databaseManagement":
+        if submenuValue == "tab-databaseStatus":
+            return databaseStatusPage.layout
+
     else:
         return "TO BE DEVELOPED"

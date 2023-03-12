@@ -1,5 +1,4 @@
-from dash import dcc
-from dash import html
+from dash import dcc, dash_table, html
 from pkg_resources import working_set
 import plotly.graph_objs as go
 import plotly.express as px
@@ -204,6 +203,21 @@ class FiguerFactory:
                     ),
                 )
             ]
+        )
+
+        df = self.backendHandle.getDisplayDf()
+        self.figures["ABSNIBondTable"] = dash_table.DataTable(
+            id="repline-table",
+            columns=[{"name": i, "id": i, "deletable": True} for i in df.columns],
+            data=df.to_dict("records"),
+            filter_action="native",
+            sort_action="native",
+            sort_mode="single",
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current=0,
+            page_size=10,
         )
 
 
