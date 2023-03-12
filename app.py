@@ -4,8 +4,9 @@ from dash import html
 from dash.dependencies import Input, Output
 import dash
 
-from WebApp.pages import menuPage, singleAssetReplinePage, rampAssetPage, warehousePage
+# from WebApp.pages import menuPage, singleAssetReplinePage, rampAssetPage, warehousePage
 
+from WebApp.pages import singleAssetReplinePage
 
 app = dash.Dash(__name__)
 server = app.server
