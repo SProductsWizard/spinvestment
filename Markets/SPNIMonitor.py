@@ -254,7 +254,7 @@ class ABSNIMonitor:
             },
         )
 
-    def getDisplayDf(self):
+    def getDisplayDf(self, head=None):
         df = self.ABSNIBondDf[
             [
                 "Sector",
@@ -281,6 +281,10 @@ class ABSNIMonitor:
         df = df.sort_values(
             by=["PRICING DATE", "Deal Name", "Class"], ascending=[False, True, True]
         )
+        if head is None:
+            return df
+        else:
+            df = df.head(head)
 
         return df
 

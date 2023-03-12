@@ -205,7 +205,7 @@ class FiguerFactory:
             ]
         )
 
-        df = self.backendHandle.getDisplayDf()
+        df = self.backendHandle.getDisplayDf(500)
         self.figures["ABSNIBondTable"] = dash_table.DataTable(
             id="repline-table",
             columns=[{"name": i, "id": i, "deletable": True} for i in df.columns],
