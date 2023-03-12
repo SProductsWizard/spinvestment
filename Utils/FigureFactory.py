@@ -206,18 +206,25 @@ class FiguerFactory:
         )
 
         df = self.backendHandle.getDisplayDf(500)
-        self.figures["ABSNIBondTable"] = dash_table.DataTable(
-            id="repline-table",
-            columns=[{"name": i, "id": i, "deletable": True} for i in df.columns],
-            data=df.to_dict("records"),
-            filter_action="native",
-            sort_action="native",
-            sort_mode="single",
-            selected_columns=[],
-            selected_rows=[],
-            page_action="native",
-            page_current=0,
-            page_size=10,
+        self.figures["ABSNIBondTable"] = html.Div(
+            children=[
+                html.Div("ABS New Issue Bond"),
+                dash_table.DataTable(
+                    id="repline-table",
+                    columns=[
+                        {"name": i, "id": i, "deletable": True} for i in df.columns
+                    ],
+                    data=df.to_dict("records"),
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="single",
+                    selected_columns=[],
+                    selected_rows=[],
+                    page_action="native",
+                    page_current=0,
+                    page_size=10,
+                ),
+            ]
         )
 
 
