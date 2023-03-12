@@ -1,9 +1,10 @@
 from dash import dcc, html, dash_table
 import pandas as pd
 from dash.dependencies import Output, State
+from Utils.StrUtils import StrUtils
 
 
-class GadgetsWrapper:
+class InputsGadgetsGroup:
     def __init__(self, pageTitle):
         self.pageTitle = pageTitle
         self.entries = self._setupEntries()
@@ -50,7 +51,7 @@ class GadgetsWrapper:
         return res
 
 
-class AssetInputsGadetsGroup(GadgetsWrapper):
+class AssetInputsGadetsGroup(InputsGadgetsGroup):
     def _setupEntries(self):
         return [
             f"{self.pageTitle}-asset-notional-input",
@@ -88,7 +89,7 @@ class AssetInputsGadetsGroup(GadgetsWrapper):
         ]
 
 
-class RampInputsGadgetsGroup(GadgetsWrapper):
+class RampInputsGadgetsGroup(InputsGadgetsGroup):
     def _setupEntries(self):
         return [
             f"{self.pageTitle}-ramp-commit-period-input",
@@ -182,3 +183,51 @@ def warehouseInputsGroup(pageTitle):
             editable=True,
         ),
     ]
+
+
+class TabsGroup:
+    def __init__(self, tabId, pageTitle, labelList, vertical=False):
+        self.tabId = tabId
+        self.pageTitle = pageTitle
+        self.vertical = vertical
+        self.labelList = labelList
+        self._setupGadgest()
+
+    def updateGadgest(self, labelList):
+        self.labelList = labelList
+        self._setupGadgest()
+
+    def _setupGadgest(self):
+
+        self.labelTabValueDict = self._createLabelTabValueDict()
+        self.layout = self._setupLayout()
+
+    def _setupLayout(self):
+        res = [html.Hr()]
+        res = res + [
+            dcc.Tabs(
+                id=self.tabId,
+                value=self.labelTabValueDict[self.labelList[0]],
+                vertical=self.vertical,
+                children=[
+                    dcc.Tab(label=label, value=self.labelTabValueDict[label])
+                    for label in self.labelList
+                ],
+            )
+        ]
+        return res
+
+    def convertTabvalue(self, label):
+        return f"tab-{StrUtils.CamelCase(label)}"
+
+    def _createLabelTabValueDict(self):
+        res = {}
+        for item in self.labelList:
+            res[item] = self.convertTabvalue(item)
+        return res
+
+    def findLabelFromValue(self, value):
+        return [k for k, v in self.labelTabValueDict.items() if v == value][0]
+
+    def getState(self):
+        return State(self.tabId, "value")

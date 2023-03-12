@@ -5,7 +5,7 @@ import pandas as pd
 
 from WebApp.appBackendResources import *
 
-import WebApp.gadgetsUtil.gadetsGroup as gadetsGroup
+import Utils.GadgetsGroup as gadetsGroup
 
 assetReplineSnapshot = db_mgr.load_assetRepline()
 pageTitle = "singleAssetRepline"

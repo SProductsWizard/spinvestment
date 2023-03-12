@@ -5,7 +5,7 @@ import plotly.express as px
 from dash.dependencies import Input, Output, State
 
 
-import WebApp.gadgetsUtil.gadetsGroup as gadetsGroup
+import Utils.GadgetsGroup as gadetsGroup
 from WebApp.appBackendResources import *
 
 
