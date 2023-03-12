@@ -1,10 +1,6 @@
-from turtle import reset
 from dash import dcc
 from dash import html
 import plotly.graph_objs as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-from dash.dependencies import Input, Output
 from WebApp.appBackendResources import *
 
 

@@ -6,7 +6,7 @@ import dash
 
 # from WebApp.pages import menuPage, singleAssetReplinePage, rampAssetPage, warehousePage
 
-from WebApp.pages import singleAssetReplinePage, rampAssetPage, warehousePage, menuPage
+from WebApp.pages import menuPage
 
 app = dash.Dash(__name__)
 server = app.server
