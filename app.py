@@ -1,37 +1,12 @@
-from dash import dcc
-from dash import html
+from dash import html, dcc
 
-from dash.dependencies import Input, Output
 import dash
-
-# from WebApp.pages import menuPage, singleAssetReplinePage, rampAssetPage, warehousePage
-
 from WebApp.pages import menuPage
 
 app = dash.Dash(__name__)
 server = app.server
 app.config.suppress_callback_exceptions = True
 
-# menuList = [
-#     "Public Market Dashboard",
-#     "Credit Drill",
-#     "Private Deal Maker",
-#     "Reserch Hub",
-#     "Street",
-#     "SPWizard",
-#     "Database Management",
-# ]
-
-
-# menuTabs = gadetsGroup.TabsGroup(
-#     tabId="menuTabs", pageTitle="main", labelList=menuList, vertical=True
-# )
-
-controlDropdownList = [
-    "Single Asset Repline",
-    "Ramp Manager",
-    "Warehouse",
-]
 
 app.layout = html.Div(
     [
@@ -62,29 +37,8 @@ app.layout = html.Div(
             ],
             style=dict(display="flex"),
         ),
-        # dcc.Dropdown(
-        #     id="control-dropdown",
-        #     options=[{"label": item, "value": item} for item in controlDropdownList],
-        #     # value=controlDropdownList[0],
-        #     value="Warehouse",
-        # ),
-        # html.Div(id="page-content"),
-        # html.Div(children=menuTabs.layout),
     ]
 )
-
-
-# @app.callback(Output("page-content", "children"), [Input("control-dropdown", "value")])
-# def display_page(pageValue):
-#     if pageValue == "Single Asset Repline":
-#         return singleAssetReplinePage.layout
-#     elif pageValue == "Ramp Manager":
-#         return rampAssetPage.layout
-#     elif pageValue == "Warehouse":
-#         return warehousePage.layout
-#     else:
-#         return "To be Developed"
-
 
 if __name__ == "__main__":
     app.run_server(debug=True)
