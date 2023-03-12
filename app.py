@@ -4,10 +4,7 @@ from dash import html
 from dash.dependencies import Input, Output
 import dash
 
-# from WebApp.pages import menuPage, singleAssetReplinePage, rampAssetPage, warehousePage
-
-
-# import Utils.GadgetsGroup as gadetsGroup
+from WebApp.pages import menuPage, singleAssetReplinePage, rampAssetPage, warehousePage
 
 
 app = dash.Dash(__name__)
