@@ -76,3 +76,52 @@ class SPCFUtils:
         elif formatType == "comma2":
             res = f"{rawNum:,.2f}"
         return res
+
+    @staticmethod
+    def convertSPRD(x):
+        try:
+            pctMulti = 1
+            if "%" in x:
+                x = x.replace("%", "")
+                pctIndicator = 100
+            if x.strip() == "-":
+                return np.nan
+
+            if ("-" in x) and (x.replace(" ", "")[0] != "-"):
+                xsplit = x.split("-")
+                sprd1 = float(xsplit[0].replace(" ", ""))
+                sprd2 = float(xsplit[1].replace(" ", ""))
+                return sprd1 + sprd2
+
+            else:
+                return float(x) * pctMulti
+        except:
+            return x
+
+    @staticmethod
+    def convertWAL(x):
+        if x.strip() == "-":
+            return np.nan
+        else:
+            return float(x)
+
+    @staticmethod
+    def findRatingsMinMax(x, findMin=True):
+        xadjust = [item for item in x if ((item > 0) and (item < 9999))]
+        if len(xadjust) == 0:
+            return min(x) if findMin else max(x)
+        else:
+            return min(xadjust) if findMin else max(xadjust)
+
+    @staticmethod
+    def weightAvg(x, y, weightCol, fillna=False):
+        if x.empty:
+            return None
+        else:
+            if fillna:
+                x = x.fillna(0)
+            x = x.dropna()
+            if np.sum(y.loc[x.index, weightCol]) == 0:
+                return 0
+            else:
+                return np.average(x, weights=y.loc[x.index, weightCol])

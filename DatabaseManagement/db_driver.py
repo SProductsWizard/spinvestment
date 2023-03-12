@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import pandas as pd
 
 from pymongo import MongoClient
-from database.config import DBConfigDict
+from DatabaseManagement.config import DBConfigDict
 
 
 class AtlasDriver:
@@ -35,7 +35,6 @@ class AtlasDriver:
         )
         return dataPull
 
-
     # def delete_data(self, cutDate):
     #     cutDate = pd.to_datetime(cutDate)
     #     col = self.database["FinsightNIBond"]
@@ -48,28 +47,36 @@ class AtlasDriver:
 
     #     return
 
-    # def upload_data_NIBond(self, df):
-    #     df = df.drop(["Unnamed: 0", "Price"], axis=1)
-    #     df = df.rename(columns={"Unnamed: 22": "PRICE"})
+    def upload_data_NIBond(self, df):
+        df = df.drop(["Unnamed: 0", "Price"], axis=1)
+        df = df.rename(columns={"Unnamed: 22": "PRICE"})
 
-    #     df["Pricing Date"] = pd.to_datetime(df["Pricing Date"])
-    #     df["Ticker"] = df["Ticker"].str.strip()
-    #     df["Series"] = df["Series"].str.strip()
-    #     df["Deal Name"] = df["Ticker"] + " " + df["Series"]
-    #     df["Sector"] = "ABS"
-    #     df = df.rename(
-    #         columns={
-    #             "Pricing Date": "PRICING DATE",
-    #             "Sector": "SECTOR",
-    #             "Region": "REGION",
-    #             "Ticker": "TICKER",
-    #             "Series": "SERIES",
-    #         }
-    #     )
+        df["Pricing Date"] = pd.to_datetime(df["Pricing Date"])
+        df["Ticker"] = df["Ticker"].str.strip()
+        df["Series"] = df["Series"].str.strip()
+        df["Deal Name"] = df["Ticker"] + " " + df["Series"]
+        df["Sector"] = "ABS"
+        df = df.rename(
+            columns={
+                "Pricing Date": "PRICING DATE",
+                "Sector": "SECTOR",
+                "Region": "REGION",
+                "Ticker": "TICKER",
+                "Series": "SERIES",
+            }
+        )
 
-    #     dbDf = self.load_data(colName="FinsightNIBond")
-    #     df = df[~df["Deal Name"].isin(dbDf["Deal Name"])]
+        dbDf = self.load_data(colName="FinsightNIBond")
+        df = df[~df["Deal Name"].isin(dbDf["Deal Name"])]
 
-    #     self.database["FinsightNIBond"].insert_many(df.to_dict("records"))
+        self.database["FinsightNIBond"].insert_many(df.to_dict("records"))
 
-    #     return self
+        return self
+
+    def upload_data_NIDeal(self, df):
+        dbDf = self.load_data(colName="FinsightNIDeal")
+        dbDf["Deal Name"] = dbDf["Deal Name"].str.strip()
+        df = df[~df["Deal Name"].isin(dbDf["Deal Name"])]
+        self.database["FinsightNIDeal"].insert_many(df.to_dict("records"))
+
+        return self
