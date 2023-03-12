@@ -10,12 +10,31 @@ from Utils.SPCFUtils import SPCFUtils
 class ABSNIMonitor:
     def __init__(self):
         self.atlasDriver = AtlasDriver(readOnly=True)
-        self.ABSNIBondDfRaw = AtlasDriver().load_data("FinsightNIBond")
-        self.ABSNIDealDfRaw = AtlasDriver().load_data("FinsightNIDeal")
+        self.ABSNIBondDfRaw = self.atlasDriver.load_data("FinsightNIBond")
+        self.ABSNIDealDfRaw = self.atlasDriver.load_data("FinsightNIDeal")
+        self.cdxData = self.atlasDriver.load_data("CDX_Index")
+
         self._cleanData()
         self._enrichData()
 
+    def getCdxIG(self):
+        return (
+            self.cdxData[["Date", "CDX_IG"]]
+            .sort_values(by="Date", ascending=False)
+            .copy()
+        )
+
+    def getCdxHY(self):
+        return (
+            self.cdxData[["Date", "CDX_HY"]]
+            .sort_values(by="Date", ascending=False)
+            .copy()
+        )
+
     def _cleanData(self):
+        # CDX Data Table
+        self.cdxData["Date"] = self.cdxData["Date"].dt.normalize()
+
         # Deal Table
         self.ABSNIDealDf = self.ABSNIDealDfRaw[
             ["Deal Name", "Sector", "Subsector", "Issuer Name", "Pricing Date"]

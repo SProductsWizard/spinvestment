@@ -35,17 +35,29 @@ class AtlasDriver:
         )
         return dataPull
 
-    # def delete_data(self, cutDate):
-    #     cutDate = pd.to_datetime(cutDate)
-    #     col = self.database["FinsightNIBond"]
-    #     x = col.delete_many(
-    #         {"$expr": {"$gte": [{"$toDate": "$PRICING DATE"}, cutDate]}}
-    #     )
+    def delete_data_NIBond(self, cutDate):
+        cutDate = pd.to_datetime(cutDate)
+        col = self.database["FinsightNIBond"]
+        x = col.delete_many(
+            {"$expr": {"$gte": [{"$toDate": "$PRICING DATE"}, cutDate]}}
+        )
 
-    #     print(f"deleted records since: {cutDate}")
-    #     print(f"deleted records: {x.deleted_count}")
+        print(f"deleted records since: {cutDate}")
+        print(f"deleted records: {x.deleted_count}")
 
-    #     return
+        return
+
+    def delete_data_NIDeal(self, cutDate):
+        cutDate = pd.to_datetime(cutDate)
+        col = self.database["FinsightNIDeal"]
+        x = col.delete_many(
+            {"$expr": {"$gte": [{"$toDate": "$Pricing Date"}, cutDate]}}
+        )
+
+        print(f"deleted records since: {cutDate}")
+        print(f"deleted records: {x.deleted_count}")
+
+        return
 
     def upload_data_NIBond(self, df):
         df = df.drop(["Unnamed: 0", "Price"], axis=1)

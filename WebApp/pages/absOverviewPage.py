@@ -65,8 +65,8 @@ spreadFig = make_subplots(
     rows=1,
     cols=3,
     subplot_titles=(
-        "Subprime Auto BBB Spread (Benchmark ABS BBB)",
-        "Subprime Auto BB Spread (Benchmark ABS BB)",
+        "Subprime Auto BBB Spread (Benchmark ABS BBB) vs. CDX IG",
+        "Subprime Auto BB Spread (Benchmark ABS BB) vs. CDX HY",
         "Latest Rel Val",
     ),
 )

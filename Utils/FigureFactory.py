@@ -22,6 +22,15 @@ class FiguerFactory:
             x="PRICING YEAR",
             y="res",
         )
+        self.figures["cdxIG_Line"] = px.line(
+            self.backendHandle.getCdxIG(), x="Date", y="CDX_IG"
+        )
+        self.figures["cdxIG_Line"].update_traces(line_color="#000000")
+
+        self.figures["cdxHY_Line"] = px.line(
+            self.backendHandle.getCdxHY(), x="Date", y="CDX_HY"
+        )
+        self.figures["cdxHY_Line"].update_traces(line_color="#000000")
 
         self.figures["subprimeAutoBBSpread_Scatter"] = px.scatter(
             self.backendHandle.runPrecannedStats(order="SubprimeAutoBBSpread")
@@ -31,6 +40,9 @@ class FiguerFactory:
             y="BB",
             title="Subprime Auto NI BB Spread",
         )
+        self.figures["subprimeAutoBBSpread_Scatter"].add_traces(
+            list(self.figures["cdxHY_Line"].select_traces())
+        )
 
         self.figures["subprimeAutoBBBSpread_Scatter"] = px.scatter(
             self.backendHandle.runPrecannedStats(order="SubprimeAutoBBBSpread")
@@ -39,6 +51,9 @@ class FiguerFactory:
             x="PRICING DATE",
             y="BBB",
             title="Subprime Auto NI BBB Spread",
+        )
+        self.figures["subprimeAutoBBBSpread_Scatter"].add_traces(
+            list(self.figures["cdxIG_Line"].select_traces())
         )
 
         self.figures["consumerLoanBBSpread_Scatter"] = px.scatter(

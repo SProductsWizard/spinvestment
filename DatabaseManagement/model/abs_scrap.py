@@ -9,13 +9,14 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import copy
-from config import FinsightNIURL, HrefSubassetClassDict
+from DatabaseManagement.config import FinsightNIURL, HrefSubassetClassDict
 from webdriver_manager.chrome import ChromeDriverManager
 
 
 class ABSScrap:
     def __init__(self):
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
+        # self.driver.close()
 
     def _waitGetElement(self, xpath, plural=False):
 

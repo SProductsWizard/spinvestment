@@ -1,3 +1,9 @@
+FinsightNIURL = {
+    "RMBS": r"https://finsight.com/bond-screener/asset-backed-securities?products=ABS&regions=USOA&hash=bbaef5c56e58ef70b20e8f39b375524af0c12e05",
+    "ABS": r"https://finsight.com/bond-screener/asset-backed-securities?products=ABS&regions=USOA&hash=7d990255043797f4064152270a1040ac033ea6de",
+    "ABSDeal": r"https://finsight.com/abs-exclos-cmbs-rmbs-market-bond-issuance-overview?products=ABS&regions=USOA",
+}
+
 DBConfigDict = {
     "Atlas": {
         "user": "user2",  # enter your own user name

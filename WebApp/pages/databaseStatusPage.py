@@ -1,7 +1,8 @@
-from dash import dcc
-from dash import html
+from dash import dcc, html, callback
+from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from WebApp.appBackendResources import *
+from datetime import date
 
 
 df = db_mgr.finsightDataStatus()
