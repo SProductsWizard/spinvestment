@@ -7,7 +7,6 @@ from DatabaseManagement.db_driver import AtlasDriver
 from Utils.SPCFUtils import SPCFUtils
 import re
 from plotly.subplots import make_subplots
-import seaborn as sns
 import random
 import plotly.graph_objects as go
 
