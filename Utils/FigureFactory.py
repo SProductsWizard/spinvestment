@@ -30,7 +30,7 @@ class FiguerFactory:
         self.figures["cdxHY_Line"] = px.line(
             self.backendHandle.getCdxHY(), x="Date", y="CDX_HY"
         )
-        self.figures["cdxHY_Line"].update_traces(line_color="#000000")
+        self.figures["cdxHY_Line"].update_traces(line_color="#DEB887")
 
         self.figures["subprimeAutoBBSpread_Scatter"] = px.scatter(
             self.backendHandle.runPrecannedStats(order="SubprimeAutoBBSpread")
