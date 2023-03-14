@@ -12,10 +12,16 @@ class ABSNIMonitor:
         self.atlasDriver = AtlasDriver(readOnly=True)
         self.ABSNIBondDfRaw = self.atlasDriver.load_data("FinsightNIBond")
         self.ABSNIDealDfRaw = self.atlasDriver.load_data("FinsightNIDeal")
-        self.cdxData = self.atlasDriver.load_data("CDX_Index")
 
-        self._cleanData()
-        self._enrichData()
+        self.RMBSNIBondDfRaw = self.atlasDriver.load_data("FinsightNIBond_RMBS")
+        self.RMBSNIDealDfRaw = self.atlasDriver.load_data("FinsightNIDeal_RMBS")
+        self.cdxData = self.atlasDriver.load_data("CDX_Index")
+        self.cdxData["Date"] = self.cdxData["Date"].dt.normalize()
+
+        self.ABSNIBondDf, self.ABSNIDealDf = self._cleanData(self.ABSNIBondDfRaw, self.ABSNIDealDfRaw)
+        self.ABSNIBondDf = self._enrichData(self.ABSNIBondDf, self.ABSNIDealDf)
+        self.RMBSNIBondDf, self.RMBSNIDealDf = self._cleanData(self.RMBSNIBondDfRaw, self.RMBSNIDealDfRaw)
+        self.RMBSNIBondDf = self._enrichData(self.RMBSNIBondDf, self.RMBSNIDealDf)
 
     def getCdxIG(self):
         return (
@@ -31,82 +37,90 @@ class ABSNIMonitor:
             .copy()
         )
 
-    def _cleanData(self):
+    @staticmethod
+    def _cleanData(bond_df_raw, deal_df_raw):
         # CDX Data Table
-        self.cdxData["Date"] = self.cdxData["Date"].dt.normalize()
+        # self.cdxData["Date"] = self.cdxData["Date"].dt.normalize()
 
         # Deal Table
-        self.ABSNIDealDf = self.ABSNIDealDfRaw[
+        deal_df = deal_df_raw[
             ["Deal Name", "Sector", "Subsector", "Issuer Name", "Pricing Date"]
         ]
-        self.ABSNIDealDf["Deal Name"] = self.ABSNIDealDf["Deal Name"].str.strip()
-        self.ABSNIDealDf["PRICING DATE"] = self.ABSNIDealDf["Pricing Date"]
+        deal_df["Deal Name"] = deal_df["Deal Name"].str.strip()
+        deal_df["PRICING DATE"] = deal_df["Pricing Date"]
 
         # Bond Table
-        self.ABSNIBondDf = self.ABSNIBondDfRaw.copy()
-        self.ABSNIBondDf["Deal Name"] = self.ABSNIBondDf["Deal Name"].str.strip()
+        df = bond_df_raw.copy()
+        df["Deal Name"] = df["Deal Name"].str.strip()
 
         # merge deal and bond table --> bond table
-        self.ABSNIBondDf = self.ABSNIBondDf.merge(
-            self.ABSNIDealDf[
+        df = df.merge(
+            deal_df[
                 ["Deal Name", "PRICING DATE", "Sector", "Subsector", "Issuer Name"]
             ],
             on=["Deal Name", "PRICING DATE"],
             how="left",
-        )
+        ).dropna(subset=["Sector", "Subsector", "Issuer Name"])
 
         # Issuer Name Short
-        self.ABSNIBondDf["IssuerShort"] = self.ABSNIBondDf["Issuer Name"].apply(
+        df["IssuerShort"] = df["Issuer Name"].apply(
             lambda x: x.split(" ")[0]
         )
 
         # Shelf
-        self.ABSNIBondDf["Shelf"] = self.ABSNIBondDf["Deal Name"].apply(
+        df["Shelf"] = df["Deal Name"].apply(
             lambda x: x.split(" ")[0]
         )
 
         # sze (m) --> sze
-        self.ABSNIBondDf["SZE 1"] = self.ABSNIBondDf["SZE (M)"].apply(
+        df["SZE 1"] = df["SZE (M)"].apply(
             lambda x: 0 if np.isnan(x) else x * 1e6
         )
 
-        self.ABSNIBondDf["SZE 2"] = self.ABSNIBondDf["SZE(M)"].apply(
-            lambda x: float(x.replace(",", "")) * 1e6 if isinstance(x, str) else 0
-        )
+        if "SZE(M)" in df.columns:
+            df["SZE 2"] = df["SZE(M)"].apply(
+                lambda x: float(x.replace(",", "")) * 1e6 if isinstance(x, str) else 0
+            )
 
-        self.ABSNIBondDf["SZE"] = self.ABSNIBondDf["SZE 1"] + self.ABSNIBondDf["SZE 2"]
+            df["SZE"] = df["SZE 1"] + df["SZE 2"]
+            df = df.drop(
+                columns=["SZE 1", "SZE 2", "SZE (M)", "SZE(M)"], axis=1
+            )
+        else:
+            df["SZE"] = df["SZE 1"]
+            df = df.drop(
+                columns=["SZE 1", "SZE (M)"], axis=1
+            )
 
-        self.ABSNIBondDf = self.ABSNIBondDf.drop(
-            columns=["SZE 1", "SZE 2", "SZE (M)", "SZE(M)"], axis=1
-        )
-
-        self.ABSNIBondDf["SZE(M)"] = self.ABSNIBondDf["SZE"] / 1e6
+        df["SZE(M)"] = df["SZE"] / 1e6
 
         # Pricing Year
-        self.ABSNIBondDf["PRICING YEAR"] = self.ABSNIBondDf["PRICING DATE"].apply(
+        df["PRICING YEAR"] = df["PRICING DATE"].apply(
             lambda x: x.year
         )
 
         # Pricing Day of Year
-        self.ABSNIBondDf["PRICING DAY OF YEAR"] = self.ABSNIBondDf[
+        df["PRICING DAY OF YEAR"] = df[
             "PRICING DATE"
         ].apply(lambda x: x.dayofyear)
 
         # Spread
-        self.ABSNIBondDf["Spread"] = self.ABSNIBondDf["SPRD"].apply(
+        df["Spread"] = df["SPRD"].apply(
             lambda x: x
             if isinstance(x, float)
             else SPCFUtils.convertSPRD(x.replace(",", ""))
         )
 
         # WAL
-        self.ABSNIBondDf["Wal"] = self.ABSNIBondDf["WAL"].apply(
+        df["Wal"] = df["WAL"].apply(
             lambda x: x
             if isinstance(x, float)
             else SPCFUtils.convertWAL(x.replace(",", ""))
         )
 
-    def _enrichData(self):
+        return df, deal_df
+
+    def _enrichData(self, df, deal_df):
 
         # Ratings
         ratingAgencyShortLong = {
@@ -120,7 +134,7 @@ class ABSNIMonitor:
         for ratingAgency in ["MO", "SP", "FI", "KR", "DR"]:
             ratingAgencyLong = ratingAgencyShortLong[ratingAgency]
             ratingConvertDict = RatingsConvert[ratingAgencyLong]
-            self.ABSNIBondDf[f"{ratingAgency}Convert"] = self.ABSNIBondDf[
+            df[f"{ratingAgency}Convert"] = df[
                 ratingAgency
             ].apply(
                 lambda x: ratingConvertDict[x]
@@ -131,7 +145,7 @@ class ABSNIMonitor:
         ratingScale = RatingsConvert["RatingsRank"]
         scaleRating = {v: k for k, v in ratingScale.items()}
 
-        self.ABSNIBondDf["HighestRatings"] = self.ABSNIBondDf.apply(
+        df["HighestRatings"] = df.apply(
             lambda x: scaleRating[
                 SPCFUtils.findRatingsMinMax(
                     [
@@ -146,7 +160,7 @@ class ABSNIMonitor:
             axis=1,
         )
 
-        self.ABSNIBondDf["LowestRatings"] = self.ABSNIBondDf.apply(
+        df["LowestRatings"] = df.apply(
             lambda x: scaleRating[
                 SPCFUtils.findRatingsMinMax(
                     [
@@ -173,8 +187,8 @@ class ABSNIMonitor:
             self.runPrecannedStats(order="ConsumerLoanIssuer").index[0:10]
         )
 
-        self.latestPricingDate = self.ABSNIDealDf["PRICING DATE"].max()
-        self.latestBondPricingDate = self.ABSNIBondDfRaw["PRICING DATE"].max()
+        self.latestPricingDate = deal_df["PRICING DATE"].max()
+        self.latestBondPricingDate = df["PRICING DATE"].max()
 
         self.relValSector = [
             "subprimeAuto",
@@ -184,6 +198,7 @@ class ABSNIMonitor:
             # "solar",
             "smallBiz",
         ]
+        return df
 
     def databaseStatus(self):
         df = pd.DataFrame(columns=["res"])

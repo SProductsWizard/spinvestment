@@ -23,6 +23,9 @@ menuDict = {
         "ABS Overview",
         "Subprime Auto",
         "Consumer Loan",
+        "RMBS Overview",
+        "2.0 Deals",
+        "CRT"
     ],
     "Credit Drill": ["Sector Tracking", "Vintage Curves", "Remits Drill"],
     "Private Deal Maker": [
