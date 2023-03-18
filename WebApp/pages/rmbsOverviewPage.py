@@ -5,27 +5,24 @@ from Utils.FigureFactory import FiguerFactory
 
 from WebApp.appBackendResources import *
 
+## the merged data rmbsbond is us regions onlu
 
 volumeFig = make_subplots(
     rows=1,
     cols=2,
     subplot_titles=(
-        "ABS NI Volume",
+        "RMBS New Issuance Volume By Sector",
         # "2021 / 2022 NI By Subsector",
-        "ABS NI Year Vintage Comp",
+        "RMBS New Issuance Year Vintage Comp",
     ),
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
-    volumeFig, figFactoryEngine.figures["ABSNIAnnualVolume"], row=1, col=1
+    volumeFig, figFactoryEngine.figures["RMBSAnnualVolume"], row=1, col=1
 )
 
-# FiguerFactory.insertPlotlypxToSubplot(
-#     volumeFig, figFactoryEngine.figures["ABSNI2022/2021Subsector"], row=1, col=2
-# )
-
 FiguerFactory.insertPlotlypxToSubplot(
-    volumeFig, figFactoryEngine.figures["ABSNIVintage"], row=1, col=2
+    volumeFig, figFactoryEngine.figures["RMBSIVintage"], row=1, col=2
 )
 
 volumeFig.update_layout(yaxis2=dict(tickfont=dict(size=10)))
@@ -43,12 +40,12 @@ volumeRatingsFig = make_subplots(
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
-    volumeRatingsFig, figFactoryEngine.figures["ABSNISubsectorSubIG"], row=1, col=1
+    volumeRatingsFig, figFactoryEngine.figures["RMBSNISubsectorSubIG"], row=1, col=1
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
     volumeRatingsFig,
-    figFactoryEngine.figures["ABSNISubsectorBelowAAIG"],
+    figFactoryEngine.figures["RMBSNISubsectorBelowAAIG"],
     row=1,
     col=2,
 )
@@ -63,30 +60,31 @@ volumeRatingsFig.update_layout(height=600)
 
 spreadFig = make_subplots(
     rows=1,
-    cols=3,
+    cols=2,
     subplot_titles=(
-        "Subprime Auto BBB Spread (Benchmark ABS BBB) vs. CDX IG",
+       # "Subprime Auto BBB Spread (Benchmark ABS BBB) vs. CDX IG",--placeholder
         "Subprime Auto BB Spread (Benchmark ABS BB) vs. CDX HY",
         "Latest Rel Val",
     ),
 )
-
+'''
 FiguerFactory.insertPlotlypxToSubplot(
     spreadFig,
     figFactoryEngine.figures["subprimeAutoBBBSpread_Scatter"],
     row=1,
     col=1,
 )
+'''
 
 FiguerFactory.insertPlotlypxToSubplot(
-    spreadFig, figFactoryEngine.figures["subprimeAutoBBSpread_Scatter"], row=1, col=2
+    spreadFig, figFactoryEngine.figures["subprimeAutoBBSpread_Scatter"], row=1, col=1
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
     spreadFig,
-    figFactoryEngine.figures["LatestRelVal"],
+    figFactoryEngine.figures["RMBSLatestRelVal"],
     row=1,
-    col=3,
+    col=2,
 )
 
 

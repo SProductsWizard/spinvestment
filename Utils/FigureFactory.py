@@ -118,6 +118,17 @@ class FiguerFactory:
             orientation="h",
         )
 
+        #resi
+        self.figures["RMBSNISubsectorSubIG"] = px.bar(
+            self.backendHandle.runPrecannedStats(
+                order="RMBSNISubsectorSubIG"
+            ).reset_index(),
+            x="res",
+            y="Subsector",
+            title="RMBS NI Volume",
+            orientation="h",
+        )
+
         self.figures["ABSNISubsectorBelowAAIG"] = px.bar(
             self.backendHandle.runPrecannedStats(
                 order="ABSNISubsectorBelowAAIG"
@@ -125,6 +136,17 @@ class FiguerFactory:
             x="res",
             y="Subsector",
             title="ABS NI Volume",
+            orientation="h",
+        )
+
+        #resi
+        self.figures["RMBSNISubsectorBelowAAIG"] = px.bar(
+            self.backendHandle.runPrecannedStats(
+                order="RMBSNISubsectorBelowAAIG"
+            ).reset_index(),
+            x="res",
+            y="Subsector",
+            title="RMBS NI Volume",
             orientation="h",
         )
 
@@ -167,6 +189,28 @@ class FiguerFactory:
             title="Consumer Loan Annual NI",
         )
 
+#resi RMBSAnnualVolume
+        self.figures['RMBSAnnualVolume'] = px.bar(
+            self.backendHandle.runsubsectorVolumeRMBS().reset_index(),
+            x="PRICING YEAR",
+            y="SZE(M)",
+            color='Subsector',
+            barmode = 'group',
+            title="RMBS New Issuance Volume By Sector",
+        )
+
+
+        self.figures["RMBSIVintage"] = px.line(
+            self.backendHandle.runPrecannedStats(
+                order="RMBSNI2023202220212020Vintage"
+            ).reset_index(),
+            x="PRICING DAY OF YEAR",
+            y=[2020, 2021, 2022, 2023],
+            title="RMBS NI Volume",
+        )
+
+
+
         self.figures["ConsumerLoanIssuer"] = px.bar(
             self.backendHandle.runPrecannedStats("ConsumerLoanIssuer")
             .sort_values(by="res", ascending=True)
@@ -201,6 +245,18 @@ class FiguerFactory:
         self.figures["RelVal"].update_layout(
             title=f"{endDate} Rel Val",
         )
+
+
+     #resi
+        self.figures["RMBSLatestRelVal"] = px.scatter(
+            self.backendHandle.runRMBSRelVal(numBackDays=30),
+            y="Spread",
+            x="WAL",
+            color="LowestRatings",
+            text="Subsector",
+        )
+        # self.figures["RMBSLatestRelVal"].update_traces(textposition="bottom center")
+        # self.figures["RMBSLatestRelVal"].update_traces(marker={"size": 10})   
 
         df = self.backendHandle.databaseStatus()
         self.figures["databaseStatus"] = go.Figure(

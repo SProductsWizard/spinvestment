@@ -235,6 +235,38 @@ class ABSNIMonitor:
             & (self.ABSNIBondDf["LowestRatings"].isin(ratingsList))
             & (self.ABSNIBondDf["Subsector"].isin(self.relValSector))
         ]
+   #resi 
+    def screenRMBSBonds(self, numBackDays, ratingsList, endDate="",relValSector=['Performing','CRT','PrimeJumbo']):
+        if endDate == "":
+            endDate = self.latestPricingDate
+        else:
+            endDate = pd.to_datetime(endDate)
+
+        pricingDateList = [
+            endDate - datetime.timedelta(days=x) for x in range(numBackDays)
+        ]
+
+        return self.RMBSNIBondDf[
+            (self.RMBSNIBondDf["PRICING DATE"].isin(pricingDateList))
+            & (self.RMBSNIBondDf["LowestRatings"].isin(ratingsList))
+            & (self.RMBSNIBondDf["Subsector"].isin(relValSector))
+        ]
+    
+
+    def runRMBSRelVal(self, numBackDays, endDate=""):
+        relValBonds = self.screenRMBSBonds(
+            numBackDays=numBackDays, ratingsList=["A", "BBB", "BB","B"], endDate=endDate
+        )[["PRICING DATE", "Subsector", "LowestRatings", "Wal", "Spread", "SZE"]]
+
+        weights = lambda x: SPCFUtils.weightAvg(x, relValBonds, "SZE")
+
+        return (
+            relValBonds.groupby(["Subsector", "LowestRatings"])
+            .agg(Spread=("Spread", weights), WAL=("Wal", weights))
+            .reset_index()
+        )
+
+    
 
     def runRelVal(self, numBackDays, endDate=""):
         relValBonds = self.screenBonds(
@@ -263,6 +295,22 @@ class ABSNIMonitor:
                 filteredABSNIBond = filteredABSNIBond[filteredABSNIBond[k].isin(v)]
 
         return filteredABSNIBond.groupby(groupBy).agg(res=fieldCalc)
+    
+    #resi
+    def runRMBSStatsEngine(
+        self,
+        fieldCalc=("SZE", "sum"),
+        groupBy=[],
+        filter={},
+    ):
+        if filter == {}:
+            filteredRMBSNIBond = self.RMBSNIBondDf
+        else:
+            filteredRMBSNIBond = self.RMBSNIBondDf.copy()
+            for k, v in filter.items():
+                filteredRMBSNIBond = filteredRMBSNIBond[filteredRMBSNIBond[k].isin(v)]
+
+        return filteredRMBSNIBond.groupby(groupBy).agg(res=fieldCalc)
 
     def runSubprimeAutoSpread(self, ratings):
         return self.runStatsEngine(
@@ -332,6 +380,9 @@ class ABSNIMonitor:
                 "PRICING YEAR": pricingyear,
             },
         )
+    #resi
+    def runsubsectorVolumeRMBS(self, pricingyear=[ 2019, 2020, 2021, 2022, 2023]):
+        return self.RMBSNIBondDf[['PRICING YEAR', 'SZE(M)','Subsector']].groupby(by=['PRICING YEAR','Subsector']).sum()
 
     def runPrecannedStats(self, order):
         if order == "":
@@ -501,3 +552,45 @@ class ABSNIMonitor:
             bb_bbb_Spread = bb_bbb_Spread[~np.isnan(bb_bbb_Spread["res"])]
 
             return bb_bbb_Spread
+        
+        elif order == "RMBSNI2023202220212020Vintage":
+            temp = self.runRMBSStatsEngine(
+                groupBy=["PRICING YEAR", "PRICING DAY OF YEAR"],
+                filter={"PRICING YEAR": [2020, 2021, 2022, 2023]},
+                fieldCalc=("SZE", "sum"),
+            )
+            temp = temp.reset_index()
+            temp = temp.pivot(
+                index="PRICING DAY OF YEAR", columns="PRICING YEAR", values="res"
+            )
+
+            latestDayOfYear_2023 = max(temp[~temp[2023].isnull()].index)
+            temp = temp.fillna(value=0)
+            temp = temp.cumsum()
+            temp.loc[temp.index > latestDayOfYear_2023, 2023] = np.nan
+
+            return temp
+
+        elif order == "RMBSNISubsectorSubIG":
+            temp = self.runRMBSStatsEngine(
+                groupBy=["Subsector"],
+                filter={
+                    "PRICING YEAR": self._latestYears,
+                    "HighestRatings": self._subigRatings,
+                },
+            )
+            temp["res"] = temp["res"] / len(self._latestYears)
+            temp = temp.sort_values(by="res", ascending=True)
+            return temp
+        
+        elif order == "RMBSNISubsectorBelowAAIG":
+            temp = self.runRMBSStatsEngine(
+                groupBy=["Subsector"],
+                filter={
+                    "PRICING YEAR": self._latestYears,
+                    "HighestRatings": self._belowAAIgRatings,
+                },
+            )
+            temp["res"] = temp["res"] / len(self._latestYears)
+            temp = temp.sort_values(by="res", ascending=True)
+            return temp

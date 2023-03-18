@@ -16,6 +16,7 @@ from WebApp.pages import (
     subprimeAutoPage,
     vintageCurvesPage,
     sectorTrackingPage,
+    rmbsOverviewPage,
 )
 
 menuDict = {
@@ -74,6 +75,8 @@ def clickSubMenu(menuValue, submenuValue):
             return consumerLoanPage.layout
         elif submenuValue == "tab-subprimeAuto":
             return subprimeAutoPage.layout
+        elif submenuValue == "tab-rmbsOverview":
+            return rmbsOverviewPage.layout
 
     elif menuValue == "tab-creditDrill":
         if submenuValue == "tab-vintageCurves":
