@@ -179,19 +179,19 @@ class ABSNIMonitor:
         self._latestYears = [2019, 2020, 2021, 2022]
         self._subigRatings = ["BB", "B", "CCC", "CC", "C", "NR"]
         self._belowAAIgRatings = ["A", "BBB"]
-
+        '''
         self._subprimeAutoTop10Shelf = list(
             self.runPrecannedStats(order="SubprimeAutoIssuer").index[0:10]
         )
         self._consumerLoanTop10Shelf = list(
-            self.runPrecannedStats(order="ConsumerLoanIssuer").index[0:10]
+            self.runPrecannedStats(order="consumerLoanIssuer").index[0:10]
         )
 
         #resi
         self._privateRMBSTop10Shelf = list(
-            self.runPrecannedStats(order="privateRMBSLoanIssuer").index[0:10]
+            self.runPrecannedStats(order="PerformingLoanIssuer").index[0:10]
         )
-
+        '''
         self.latestPricingDate = deal_df["PRICING DATE"].max()
         self.latestBondPricingDate = df["PRICING DATE"].max()
 
@@ -317,44 +317,29 @@ class ABSNIMonitor:
 
         return filteredRMBSNIBond.groupby(groupBy).agg(res=fieldCalc)
 
-    def runSubprimeAutoSpread(self, ratings):
+    def runABSSectorSpread(self, ratings, subsector):
         return self.runStatsEngine(
             fieldCalc=("Spread", "mean"),
             groupBy=["PRICING DATE", "Deal Name"],
             filter={
-                "Subsector": ["subprimeAuto"],
+                "Subsector": subsector,
                 "PRICING YEAR": self._latestYears + [2023],
                 "HighestRatings": ratings,
-                "Shelf": self._subprimeAutoTop10Shelf,
+                "Shelf": list(self.runPrecannedStats(order=fr"{subsector[0]}Issuer").index[0:10]),
             },
-        )
-
-    def runConsumerLoanSpread(self, ratings):
-        return self.runStatsEngine(
-            fieldCalc=("Spread", "mean"),
-            groupBy=["PRICING DATE", "Deal Name"],
-            filter={
-                "Subsector": ["consumerLoan"],
-                "PRICING YEAR": self._latestYears + [2023],
-                "HighestRatings": ratings,
-                "Shelf": self._consumerLoanTop10Shelf,
-            },
-        )
+        )    
     
-    
-    def runNonPrimeLoanSpread(self, ratings):
+    def runRMBSSectorSpread(self, ratings, subsector):
         return self.runRMBSStatsEngine(
             fieldCalc=("Spread", "mean"),
             groupBy=["PRICING DATE", "Deal Name"],
             filter={
-                "Subsector": ["Performing"],
+                "Subsector": subsector,
                 "PRICING YEAR": self._latestYears + [2023],
                 "HighestRatings": ratings,
-                "Shelf": self._privateRMBSTop10Shelf,
+                "Shelf": list(self.runPrecannedStats(order=fr"{subsector[0]}LoanIssuer").index[0:10]),
             },
         )
-
-
 
     def getDisplayDf(self, head=None):
         df = self.ABSNIBondDf[
@@ -410,6 +395,35 @@ class ABSNIMonitor:
                 "PRICING YEAR": pricingyear,
             },
         )
+
+    def runRmbsBB_BBB_Spread(self, subsector):
+        bbbSpread = (
+            self.runPrecannedStats(order=fr"{subsector.lower()}BBBSpread")
+            .reset_index()
+            .rename(columns={"res": "bbbSpread"})
+        )
+        bbSpread = (
+            self.runPrecannedStats(order=fr"{subsector.lower()}BBSpread")
+            .reset_index()
+            .rename(columns={"res": "bbSpread"})
+        )
+        bb_bbb_Spread = bbSpread.merge(
+            bbbSpread,
+            on=["PRICING DATE", "Deal Name"],
+            how="left",
+        )
+        bb_bbb_Spread["bb_bbb_spread"] = (
+            bb_bbb_Spread["bbSpread"] - bb_bbb_Spread["bbbSpread"]
+        )
+
+        bb_bbb_Spread = (
+            bb_bbb_Spread.drop(["bbSpread", "bbbSpread"], axis=1)
+            .rename(columns={"bb_bbb_spread": "res"})
+            .set_index(["PRICING DATE", "Deal Name"])
+        )
+        bb_bbb_Spread = bb_bbb_Spread[~np.isnan(bb_bbb_Spread["res"])]
+
+        return bb_bbb_Spread
 
     def runPrecannedStats(self, order):
         if order == "":
@@ -492,7 +506,7 @@ class ABSNIMonitor:
             temp = temp.sort_values(by="res", ascending=True)
             return temp
 
-        elif order == "SubprimeAutoIssuer":
+        elif order == "subprimeAutoIssuer":
             return self.runStatsEngine(
                 groupBy=["Shelf"],
                 filter={
@@ -501,7 +515,7 @@ class ABSNIMonitor:
                 },
             ).sort_values(by="res", ascending=False)
 
-        elif order == "ConsumerLoanIssuer":
+        elif order == "consumerLoanIssuer":
             return self.runStatsEngine(
                 groupBy=["Shelf"],
                 filter={
@@ -511,10 +525,10 @@ class ABSNIMonitor:
             ).sort_values(by="res", ascending=False)
 
         elif order == "ConsumerLoanBBBSpread":
-            return self.runConsumerLoanSpread(ratings=["BBB"])
+            return self.runABSSectorSpread(ratings=["BBB"], subsector=["consumerLoan"])
 
         elif order == "ConsumerLoanBBSpread":
-            return self.runConsumerLoanSpread(ratings=["BB"])
+            return self.runABSSectorSpread(ratings=["BB"], subsector=["consumerLoan"])
 
         elif order == "ConsumerLoanBB_BBBSpread":
             bbbSpread = (
@@ -546,10 +560,10 @@ class ABSNIMonitor:
             return bb_bbb_Spread
 
         elif order == "SubprimeAutoBBBSpread":
-            return self.runSubprimeAutoSpread(ratings=["BBB"])
+            return self.runABSSectorSpread(ratings=["BBB"], subsector=["subprimeAuto"])
 
         elif order == "SubprimeAutoBBSpread":
-            return self.runSubprimeAutoSpread(ratings=["BB"])
+            return self.runABSSectorSpread(ratings=["BB"], subsector=["subprimeAuto"])
 
         elif order == "SubprimeAutoBB_BBBSpread":
             bbbSpread = (
@@ -626,7 +640,7 @@ class ABSNIMonitor:
             return self.runRMBSStatsEngine(groupBy=["PRICING YEAR",'Subsector'], filter={})
         
 
-        elif order == "privateRMBSLoanIssuer":
+        elif order == "PerformingLoanIssuer":
             return self.runRMBSStatsEngine(
                 groupBy=["Shelf"],
                 filter={
@@ -634,38 +648,49 @@ class ABSNIMonitor:
                     "PRICING YEAR": self._latestYears,
                 },
             ).sort_values(by="res", ascending=False)
+        
+        elif order == "CRTLoanIssuer":
+            return self.runRMBSStatsEngine(
+                groupBy=["Shelf"],
+                filter={
+                    "Subsector": ["CRT"],
+                    "PRICING YEAR": self._latestYears,
+                },
+            ).sort_values(by="res", ascending=False)
+        
+        elif order == "PrimeJumboLoanIssuer":
+            return self.runRMBSStatsEngine(
+                groupBy=["Shelf"],
+                filter={
+                    "Subsector": ["PrimeJumbo"],
+                    "PRICING YEAR": self._latestYears,
+                },
+            ).sort_values(by="res", ascending=False)
 
-        elif order == "nonPrimeBBBSpread":
-            return self.runNonPrimeLoanSpread(ratings=["BBB"])
+        elif order == "performingBBBSpread":
+            return self.runRMBSSectorSpread(ratings=["BBB"], subsector=["Performing"])
+        
+        elif order == "crtBBBSpread":
+            return self.runRMBSSectorSpread(ratings=["BBB"], subsector=["CRT"])
+        
+        elif order == "primejumboBBBSpread":
+            return self.runRMBSSectorSpread(ratings=["BBB"], subsector=["PrimeJumbo"])
 
-        elif order == "nonPrimeBBSpread":
-            return self.runNonPrimeLoanSpread(ratings=["BB"])
+        elif order == "performingBBSpread":
+            return self.runRMBSSectorSpread(ratings=["BB"], subsector=["Performing"])
+        
+        elif order == "crtBBSpread":
+            return self.runRMBSSectorSpread(ratings=["BB"], subsector=["CRT"])
+        
+        elif order == "primejumboBBSpread":
+            return self.runRMBSSectorSpread(ratings=["BB"], subsector=["PrimeJumbo"])
 
-        elif order == "nonPrimeBB_BBBSpread":
-            bbbSpread = (
-                self.runPrecannedStats(order="nonPrimeBBBSpread")
-                .reset_index()
-                .rename(columns={"res": "bbbSpread"})
-            )
-            bbSpread = (
-                self.runPrecannedStats(order="nonPrimeBBSpread")
-                .reset_index()
-                .rename(columns={"res": "bbSpread"})
-            )
-            bb_bbb_Spread = bbSpread.merge(
-                bbbSpread,
-                on=["PRICING DATE", "Deal Name"],
-                how="left",
-            )
-            bb_bbb_Spread["bb_bbb_spread"] = (
-                bb_bbb_Spread["bbSpread"] - bb_bbb_Spread["bbbSpread"]
-            )
-
-            bb_bbb_Spread = (
-                bb_bbb_Spread.drop(["bbSpread", "bbbSpread"], axis=1)
-                .rename(columns={"bb_bbb_spread": "res"})
-                .set_index(["PRICING DATE", "Deal Name"])
-            )
-            bb_bbb_Spread = bb_bbb_Spread[~np.isnan(bb_bbb_Spread["res"])]
-
-            return bb_bbb_Spread
+        elif order == "performingBB_BBBSpread":
+            return self.runRmbsBB_BBB_Spread('Performing')
+        
+        elif order == "crtBB_BBBSpread":
+            return self.runRmbsBB_BBB_Spread('CRT')
+        
+        elif order == "primejumboBB_BBBSpread":
+            return self.runRmbsBB_BBB_Spread('PrimeJumbo')
+        

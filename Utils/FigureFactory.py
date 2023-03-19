@@ -170,7 +170,7 @@ class FiguerFactory:
         )
 
         self.figures["SubprimeAutoIssuer"] = px.bar(
-            self.backendHandle.runPrecannedStats("SubprimeAutoIssuer")
+            self.backendHandle.runPrecannedStats("subprimeAutoIssuer")
             .sort_values(by="res", ascending=True)
             .reset_index()
             .tail(15),
@@ -209,61 +209,63 @@ class FiguerFactory:
             title="RMBS NI Volume",
         )
         
-        self.figures["rmbs2pt0AnnualVolume"] = px.bar(
-            self.backendHandle.runsubsectorVolumeRMBS(
-                subsector="Performing"#needs to be updated
-            ).reset_index(),
-            x="PRICING YEAR",
-            y="res",
-            title="RMBS 2.0 Annual NI(tbd)",
-        )
 
+        for subsector in ['Performing', 'CRT', 'PrimeJumbo']:
+            self.figures["rmbsAnnualVolume_"+subsector] = px.bar(
+                self.backendHandle.runsubsectorVolumeRMBS(
+                    subsector=subsector#needs to be updated
+                ).reset_index(),
+                x="PRICING YEAR",
+                y="res",
+                title="RMBS 2.0 Annual NI(tbd)",
+            )
 
-
-        self.figures["privateRMBSLoanIssuer"] = px.bar(
-            self.backendHandle.runPrecannedStats("privateRMBSLoanIssuer")
-            .sort_values(by="res", ascending=True)
-            .reset_index()
-            .tail(15),
-            y="Shelf",
-            x="res",
-            orientation="h",
-            title="Top 15 PLS Loan Shelf",
-        )
+            self.figures[fr"{subsector}LoanIssuer"] = px.bar(
+                self.backendHandle.runPrecannedStats(fr"{subsector}LoanIssuer")
+                .sort_values(by="res", ascending=True)
+                .reset_index()
+                .tail(15),
+                y="Shelf",
+                x="res",
+                orientation="h",
+                title=fr"Top 15 {subsector} Loan Shelf",
+            )
 
 #adding resi 
-        self.figures["rmbsNonprimeBBSpread_Scatter"] = px.scatter(
-            self.backendHandle.runPrecannedStats(order="nonPrimeBBSpread")
-            .reset_index()
-            .rename(columns={"res": "BB"}),
-            x="PRICING DATE",
-            y="BB",
-            title="NonPrime Loan NI BB Spread",
-        )
 
-        self.figures["rmbsNonprimeBBBSpread_Scatter"] = px.scatter(
-            self.backendHandle.runPrecannedStats(order="nonPrimeBBBSpread")
-            .reset_index()
-            .rename(columns={"res": "BBB"}),
-            x="PRICING DATE",
-            y="BBB",
-            title="NonPrime Loan NI BBB Spread",
-        )
+        for subsector in ['Performing', 'CRT', 'PrimeJumbo']:
+            self.figures[fr"{subsector.lower()}BBSpread_Scatter"] = px.scatter(
+                self.backendHandle.runPrecannedStats(order=fr"{subsector.lower()}BBSpread")
+                .reset_index()
+                .rename(columns={"res": "BB"}),
+                x="PRICING DATE",
+                y="BB",
+                title=fr"{subsector} Loan NI BB Spread",
+            )
 
+            self.figures[fr"{subsector.lower()}BBBSpread_Scatter"] = px.scatter(
+                self.backendHandle.runPrecannedStats(order=fr"{subsector.lower()}BBBSpread")
+                .reset_index()
+                .rename(columns={"res": "BBB"}),
+                x="PRICING DATE",
+                y="BBB",
+                title=fr"{subsector} Loan NI BBB Spread",
+            )
 
-        self.figures["rmbsNonprimeBB/BBBSpread_Scatter"] = px.scatter(
-            self.backendHandle.runPrecannedStats(
-                order="nonPrimeBB_BBBSpread"
-            ).reset_index(),
-            x="PRICING DATE",
-            y="res",
-            title="NonPrime Loan BB/BBB Spread Difference (Credit Curve)",
-        )
-
-
+            try:
+                self.figures[fr"{subsector.lower()}BB/BBBSpread_Scatter"] = px.scatter(
+                    self.backendHandle.runPrecannedStats(
+                        order=fr"{subsector.lower()}BB_BBBSpread"
+                    ).reset_index(),
+                    x="PRICING DATE",
+                    y="res",
+                    title=fr"{subsector} Loan BB/BBB Spread Difference (Credit Curve)",
+                )
+            except Exception as e:
+                pass
 
         self.figures["ConsumerLoanIssuer"] = px.bar(
-            self.backendHandle.runPrecannedStats("ConsumerLoanIssuer")
+            self.backendHandle.runPrecannedStats("consumerLoanIssuer")
             .sort_values(by="res", ascending=True)
             .reset_index()
             .tail(15),

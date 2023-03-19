@@ -9,17 +9,17 @@ row1Fig = make_subplots(
     rows=1,
     cols=2,
     subplot_titles=(
-        "RMBS 2.0 Annual NI",
+        "RMBS CRT Annual NI",
         "Top 10 2.0 Loan Shelf",
     ),
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
-    row1Fig, figFactoryEngine.figures["rmbsAnnualVolume_Performing"], row=1, col=1
+    row1Fig, figFactoryEngine.figures["rmbsAnnualVolume_CRT"], row=1, col=1
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
-    row1Fig, figFactoryEngine.figures["PerformingLoanIssuer"], row=1, col=2
+    row1Fig, figFactoryEngine.figures["CRTLoanIssuer"], row=1, col=2
 )
 
 #
@@ -27,22 +27,22 @@ row2Fig = make_subplots(
     rows=1,
     cols=2,
     subplot_titles=(
-        "RMBS Nonprime  BBB and BB Spread",
+        "RMBS CRT  BBB and BB Spread",
         "BB / BBB Spread (Credit Curve)",
     ),
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
-    row2Fig, figFactoryEngine.figures["performingBBSpread_Scatter"], row=1, col=1
+    row2Fig, figFactoryEngine.figures["crtBBSpread_Scatter"], row=1, col=1
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
-    row2Fig, figFactoryEngine.figures["performingBBBSpread_Scatter"], row=1, col=1
+    row2Fig, figFactoryEngine.figures["crtBBBSpread_Scatter"], row=1, col=1
 )
 
 FiguerFactory.insertPlotlypxToSubplot(
     row2Fig,
-    figFactoryEngine.figures["performingBB/BBBSpread_Scatter"],
+    figFactoryEngine.figures["crtBB/BBBSpread_Scatter"],
     row=1,
     col=2,
 )

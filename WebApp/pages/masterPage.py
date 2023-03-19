@@ -18,7 +18,8 @@ from WebApp.pages import (
     sectorTrackingPage,
     rmbsOverviewPage,
     privateRmbsPage,
-
+    crtRmbsPage,
+    primeJumboRmbsPage
 )
 
 menuDict = {
@@ -28,7 +29,8 @@ menuDict = {
         "Consumer Loan",
         "RMBS Overview",
         "PLS Deals",
-        "CRT"
+        "CRT",
+        "Prime Jumbo"
     ],
     "Credit Drill": ["Sector Tracking", "Vintage Curves", "Remits Drill"],
     "Private Deal Maker": [
@@ -79,9 +81,12 @@ def clickSubMenu(menuValue, submenuValue):
             return subprimeAutoPage.layout
         elif submenuValue == "tab-rmbsOverview":
             return rmbsOverviewPage.layout
-        
         elif submenuValue == "tab-plsDeals":
             return privateRmbsPage.layout
+        elif submenuValue == 'tab-crt':
+            return crtRmbsPage.layout
+        elif submenuValue == 'tab-primeJumbo':
+            return primeJumboRmbsPage.layout
 
     elif menuValue == "tab-creditDrill":
         if submenuValue == "tab-vintageCurves":
