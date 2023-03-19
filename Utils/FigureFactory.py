@@ -190,15 +190,15 @@ class FiguerFactory:
         )
 
 #resi RMBSAnnualVolume
-        self.figures['RMBSAnnualVolume'] = px.bar(
-            self.backendHandle.runsubsectorVolumeRMBS().reset_index(),
+
+        self.figures["RMBSAnnualVolume"] = px.bar(
+            self.backendHandle.runPrecannedStats(order="RMBSAnnualNI").reset_index(),
             x="PRICING YEAR",
-            y="SZE(M)",
+            y="res",
             color='Subsector',
-            barmode = 'group',
+            barmode = 'stack',
             title="RMBS New Issuance Volume By Sector",
         )
-
 
         self.figures["RMBSIVintage"] = px.line(
             self.backendHandle.runPrecannedStats(
@@ -207,6 +207,57 @@ class FiguerFactory:
             x="PRICING DAY OF YEAR",
             y=[2020, 2021, 2022, 2023],
             title="RMBS NI Volume",
+        )
+        
+        self.figures["rmbs2pt0AnnualVolume"] = px.bar(
+            self.backendHandle.runsubsectorVolumeRMBS(
+                subsector="Performing"#needs to be updated
+            ).reset_index(),
+            x="PRICING YEAR",
+            y="res",
+            title="RMBS 2.0 Annual NI(tbd)",
+        )
+
+
+
+        self.figures["privateRMBSLoanIssuer"] = px.bar(
+            self.backendHandle.runPrecannedStats("privateRMBSLoanIssuer")
+            .sort_values(by="res", ascending=True)
+            .reset_index()
+            .tail(15),
+            y="Shelf",
+            x="res",
+            orientation="h",
+            title="Top 15 PLS Loan Shelf",
+        )
+
+#adding resi 
+        self.figures["rmbsNonprimeBBSpread_Scatter"] = px.scatter(
+            self.backendHandle.runPrecannedStats(order="nonPrimeBBSpread")
+            .reset_index()
+            .rename(columns={"res": "BB"}),
+            x="PRICING DATE",
+            y="BB",
+            title="NonPrime Loan NI BB Spread",
+        )
+
+        self.figures["rmbsNonprimeBBBSpread_Scatter"] = px.scatter(
+            self.backendHandle.runPrecannedStats(order="nonPrimeBBBSpread")
+            .reset_index()
+            .rename(columns={"res": "BBB"}),
+            x="PRICING DATE",
+            y="BBB",
+            title="NonPrime Loan NI BBB Spread",
+        )
+
+
+        self.figures["rmbsNonprimeBB/BBBSpread_Scatter"] = px.scatter(
+            self.backendHandle.runPrecannedStats(
+                order="nonPrimeBB_BBBSpread"
+            ).reset_index(),
+            x="PRICING DATE",
+            y="res",
+            title="NonPrime Loan BB/BBB Spread Difference (Credit Curve)",
         )
 
 
@@ -249,7 +300,7 @@ class FiguerFactory:
 
      #resi
         self.figures["RMBSLatestRelVal"] = px.scatter(
-            self.backendHandle.runRMBSRelVal(numBackDays=30),
+            self.backendHandle.runRMBSRelVal(numBackDays=90),
             y="Spread",
             x="WAL",
             color="LowestRatings",

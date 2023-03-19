@@ -19,8 +19,8 @@ class ABSNIMonitor:
         self.cdxData["Date"] = self.cdxData["Date"].dt.normalize()
 
         self.ABSNIBondDf, self.ABSNIDealDf = self._cleanData(self.ABSNIBondDfRaw, self.ABSNIDealDfRaw)
-        self.ABSNIBondDf = self._enrichData(self.ABSNIBondDf, self.ABSNIDealDf)
         self.RMBSNIBondDf, self.RMBSNIDealDf = self._cleanData(self.RMBSNIBondDfRaw, self.RMBSNIDealDfRaw)
+        self.ABSNIBondDf = self._enrichData(self.ABSNIBondDf, self.ABSNIDealDf)
         self.RMBSNIBondDf = self._enrichData(self.RMBSNIBondDf, self.RMBSNIDealDf)
 
     def getCdxIG(self):
@@ -179,12 +179,17 @@ class ABSNIMonitor:
         self._latestYears = [2019, 2020, 2021, 2022]
         self._subigRatings = ["BB", "B", "CCC", "CC", "C", "NR"]
         self._belowAAIgRatings = ["A", "BBB"]
+
         self._subprimeAutoTop10Shelf = list(
             self.runPrecannedStats(order="SubprimeAutoIssuer").index[0:10]
         )
-
         self._consumerLoanTop10Shelf = list(
             self.runPrecannedStats(order="ConsumerLoanIssuer").index[0:10]
+        )
+
+        #resi
+        self._privateRMBSTop10Shelf = list(
+            self.runPrecannedStats(order="privateRMBSLoanIssuer").index[0:10]
         )
 
         self.latestPricingDate = deal_df["PRICING DATE"].max()
@@ -335,6 +340,21 @@ class ABSNIMonitor:
                 "Shelf": self._consumerLoanTop10Shelf,
             },
         )
+    
+    
+    def runNonPrimeLoanSpread(self, ratings):
+        return self.runRMBSStatsEngine(
+            fieldCalc=("Spread", "mean"),
+            groupBy=["PRICING DATE", "Deal Name"],
+            filter={
+                "Subsector": ["Performing"],
+                "PRICING YEAR": self._latestYears + [2023],
+                "HighestRatings": ratings,
+                "Shelf": self._privateRMBSTop10Shelf,
+            },
+        )
+
+
 
     def getDisplayDf(self, head=None):
         df = self.ABSNIBondDf[
@@ -381,8 +401,15 @@ class ABSNIMonitor:
             },
         )
     #resi
-    def runsubsectorVolumeRMBS(self, pricingyear=[ 2019, 2020, 2021, 2022, 2023]):
-        return self.RMBSNIBondDf[['PRICING YEAR', 'SZE(M)','Subsector']].groupby(by=['PRICING YEAR','Subsector']).sum()
+    def runsubsectorVolumeRMBS(self, subsector, pricingyear=[ 2019, 2020, 2021, 2022, 2023]):
+        #return self.RMBSNIBondDf[['PRICING YEAR', 'SZE(M)','Subsector']].groupby(by=['PRICING YEAR','Subsector']).sum()
+        return self.runRMBSStatsEngine(
+            groupBy=["PRICING YEAR"],
+            filter={
+                "Subsector": [subsector],
+                "PRICING YEAR": pricingyear,
+            },
+        )
 
     def runPrecannedStats(self, order):
         if order == "":
@@ -594,3 +621,51 @@ class ABSNIMonitor:
             temp["res"] = temp["res"] / len(self._latestYears)
             temp = temp.sort_values(by="res", ascending=True)
             return temp
+        
+        elif order == "RMBSAnnualNI":
+            return self.runRMBSStatsEngine(groupBy=["PRICING YEAR",'Subsector'], filter={})
+        
+
+        elif order == "privateRMBSLoanIssuer":
+            return self.runRMBSStatsEngine(
+                groupBy=["Shelf"],
+                filter={
+                    "Subsector": ["Performing"],
+                    "PRICING YEAR": self._latestYears,
+                },
+            ).sort_values(by="res", ascending=False)
+
+        elif order == "nonPrimeBBBSpread":
+            return self.runNonPrimeLoanSpread(ratings=["BBB"])
+
+        elif order == "nonPrimeBBSpread":
+            return self.runNonPrimeLoanSpread(ratings=["BB"])
+
+        elif order == "nonPrimeBB_BBBSpread":
+            bbbSpread = (
+                self.runPrecannedStats(order="nonPrimeBBBSpread")
+                .reset_index()
+                .rename(columns={"res": "bbbSpread"})
+            )
+            bbSpread = (
+                self.runPrecannedStats(order="nonPrimeBBSpread")
+                .reset_index()
+                .rename(columns={"res": "bbSpread"})
+            )
+            bb_bbb_Spread = bbSpread.merge(
+                bbbSpread,
+                on=["PRICING DATE", "Deal Name"],
+                how="left",
+            )
+            bb_bbb_Spread["bb_bbb_spread"] = (
+                bb_bbb_Spread["bbSpread"] - bb_bbb_Spread["bbbSpread"]
+            )
+
+            bb_bbb_Spread = (
+                bb_bbb_Spread.drop(["bbSpread", "bbbSpread"], axis=1)
+                .rename(columns={"bb_bbb_spread": "res"})
+                .set_index(["PRICING DATE", "Deal Name"])
+            )
+            bb_bbb_Spread = bb_bbb_Spread[~np.isnan(bb_bbb_Spread["res"])]
+
+            return bb_bbb_Spread
