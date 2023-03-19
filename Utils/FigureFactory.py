@@ -351,6 +351,28 @@ class FiguerFactory:
             ]
         )
 
+        df_rmbs = self.backendHandle.getDisplayDf_rmbs(500)
+        self.figures["RMBSNIBondTable"] = html.Div(
+            children=[
+                html.Div("RMBS New Issue Bond"),
+                dash_table.DataTable(
+                    id="rmbs-repline-table",
+                    columns=[
+                        {"name": i, "id": i, "deletable": True} for i in df_rmbs.columns
+                    ],
+                    data=df_rmbs.to_dict("records"),
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="single",
+                    selected_columns=[],
+                    selected_rows=[],
+                    page_action="native",
+                    page_current=0,
+                    page_size=10,
+                ),
+            ]
+        )
+
 
 # --------------------------------------
 # legace work

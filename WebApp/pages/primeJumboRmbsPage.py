@@ -10,7 +10,7 @@ row1Fig = make_subplots(
     cols=2,
     subplot_titles=(
         "RMBS Prime Jumbo Annual NI",
-        "Top 10 2.0 Loan Shelf",
+        "Top 10 Prime Jumbo Loan Shelf",
     ),
 )
 
@@ -27,7 +27,7 @@ row2Fig = make_subplots(
     rows=1,
     cols=2,
     subplot_titles=(
-        "RMBS Nonprime  BBB and BB Spread",
+        "RMBS Prime Jumbo BBB and BB Spread",
         "BB / BBB Spread (Credit Curve)",
     ),
 )

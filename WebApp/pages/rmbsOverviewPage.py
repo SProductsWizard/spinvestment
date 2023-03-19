@@ -90,7 +90,7 @@ FiguerFactory.insertPlotlypxToSubplot(
 
 layout = html.Div(
     [
-        figFactoryEngine.figures["ABSNIBondTable"],
+        figFactoryEngine.figures["RMBSNIBondTable"],
         dcc.Graph(figure=spreadFig),
         dcc.Graph(figure=volumeFig),
         dcc.Graph(figure=volumeRatingsFig),

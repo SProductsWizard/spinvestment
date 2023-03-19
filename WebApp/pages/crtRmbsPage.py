@@ -10,7 +10,7 @@ row1Fig = make_subplots(
     cols=2,
     subplot_titles=(
         "RMBS CRT Annual NI",
-        "Top 10 2.0 Loan Shelf",
+        "Top 10 CRT Loan Shelf",
     ),
 )
 

@@ -19,7 +19,9 @@ from WebApp.pages import (
     rmbsOverviewPage,
     privateRmbsPage,
     crtRmbsPage,
-    primeJumboRmbsPage
+    primeJumboRmbsPage,
+    rmbsStaticPage,
+    rmbsVintageCurvesPage,
 )
 
 menuDict = {
@@ -28,11 +30,11 @@ menuDict = {
         "Subprime Auto",
         "Consumer Loan",
         "RMBS Overview",
-        "PLS Deals",
+        "NQM Deals",
         "CRT",
         "Prime Jumbo"
     ],
-    "Credit Drill": ["Sector Tracking", "Vintage Curves", "Remits Drill"],
+    "ABS Credit Drill": ["Sector Tracking", "Vintage Curves", "Remits Drill"],
     "Private Deal Maker": [
         "Repline Modeling",
         "Ramp Modeling",
@@ -42,6 +44,8 @@ menuDict = {
     "Reserch Hub": ["Dealers Research", "Research Scratches"],
     "Street": ["Two Way Market"],
     "Database Management": ["Database Status", "Manage Database"],
+    "RMBS Credit Drill": ["Vintage Curves", "Static Stats"]
+
 }
 
 menuTabs = gadetsGroup.TabsGroup(
@@ -88,7 +92,7 @@ def clickSubMenu(menuValue, submenuValue):
         elif submenuValue == 'tab-primeJumbo':
             return primeJumboRmbsPage.layout
 
-    elif menuValue == "tab-creditDrill":
+    elif menuValue == "tab-absCreditDrill":
         if submenuValue == "tab-vintageCurves":
             return vintageCurvesPage.layout
         elif submenuValue == "tab-sectorTracking":
@@ -105,6 +109,12 @@ def clickSubMenu(menuValue, submenuValue):
     elif menuValue == "tab-databaseManagement":
         if submenuValue == "tab-databaseStatus":
             return databaseStatusPage.layout
+        
+    elif menuValue == "tab-rmbsCreditDrill":
+        if submenuValue == "tab-vintageCurves":
+            return rmbsVintageCurvesPage.layout
+        elif submenuValue == "tab-staticStats":
+            return rmbsStaticPage.layout
 
     else:
         return "TO BE DEVELOPED"

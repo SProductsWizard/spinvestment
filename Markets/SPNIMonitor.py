@@ -374,6 +374,43 @@ class ABSNIMonitor:
             df = df.head(head)
 
         return df
+    
+    def getDisplayDf_rmbs(self, head=None):
+        df = self.RMBSNIBondDf[
+            [
+                "Sector",
+                "Subsector",
+                "PRICING DATE",
+                "Deal Name",
+                "Class",
+                "SZE(M)",
+                "WAL",
+                "MO",
+                "SP",
+                "FI",
+                "DR",
+                "KR",
+                "MS",
+                "LowestRatings",
+                "FX/FL",
+                "BNCH",
+                "SPRD",
+                "CPN",
+                "YLD",
+            ]
+        ].copy()
+        df = df.sort_values(
+            by=["PRICING DATE", "Deal Name", "Class"], ascending=[False, True, True]
+        )
+        if head is None:
+            return df
+        else:
+            df = df.head(head)
+
+        return df
+
+
+
 
     def runsubsectorVolume(
         self, subsector, pricingyear=[2018, 2019, 2020, 2021, 2022, 2023]
