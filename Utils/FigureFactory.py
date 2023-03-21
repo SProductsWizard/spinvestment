@@ -118,6 +118,17 @@ class FiguerFactory:
             orientation="h",
         )
 
+        #resi
+        self.figures["RMBSNISubsectorSubIG"] = px.bar(
+            self.backendHandle.runPrecannedStats(
+                order="RMBSNISubsectorSubIG"
+            ).reset_index(),
+            x="res",
+            y="Subsector",
+            title="RMBS NI Volume",
+            orientation="h",
+        )
+
         self.figures["ABSNISubsectorBelowAAIG"] = px.bar(
             self.backendHandle.runPrecannedStats(
                 order="ABSNISubsectorBelowAAIG"
@@ -125,6 +136,17 @@ class FiguerFactory:
             x="res",
             y="Subsector",
             title="ABS NI Volume",
+            orientation="h",
+        )
+
+        #resi
+        self.figures["RMBSNISubsectorBelowAAIG"] = px.bar(
+            self.backendHandle.runPrecannedStats(
+                order="RMBSNISubsectorBelowAAIG"
+            ).reset_index(),
+            x="res",
+            y="Subsector",
+            title="RMBS NI Volume",
             orientation="h",
         )
 
@@ -148,7 +170,7 @@ class FiguerFactory:
         )
 
         self.figures["SubprimeAutoIssuer"] = px.bar(
-            self.backendHandle.runPrecannedStats("SubprimeAutoIssuer")
+            self.backendHandle.runPrecannedStats("subprimeAutoIssuer")
             .sort_values(by="res", ascending=True)
             .reset_index()
             .tail(15),
@@ -167,8 +189,83 @@ class FiguerFactory:
             title="Consumer Loan Annual NI",
         )
 
+#resi RMBSAnnualVolume
+
+        self.figures["RMBSAnnualVolume"] = px.bar(
+            self.backendHandle.runPrecannedStats(order="RMBSAnnualNI").reset_index(),
+            x="PRICING YEAR",
+            y="res",
+            color='Subsector',
+            barmode = 'stack',
+            title="RMBS New Issuance Volume By Sector",
+        )
+
+        self.figures["RMBSIVintage"] = px.line(
+            self.backendHandle.runPrecannedStats(
+                order="RMBSNI2023202220212020Vintage"
+            ).reset_index(),
+            x="PRICING DAY OF YEAR",
+            y=[2020, 2021, 2022, 2023],
+            title="RMBS NI Volume",
+        )
+        
+
+        for subsector in ['Performing', 'CRT', 'PrimeJumbo']:
+            self.figures["rmbsAnnualVolume_"+subsector] = px.bar(
+                self.backendHandle.runsubsectorVolumeRMBS(
+                    subsector=subsector#needs to be updated
+                ).reset_index(),
+                x="PRICING YEAR",
+                y="res",
+                title="RMBS 2.0 Annual NI(tbd)",
+            )
+
+            self.figures[fr"{subsector}LoanIssuer"] = px.bar(
+                self.backendHandle.runPrecannedStats(fr"{subsector}LoanIssuer")
+                .sort_values(by="res", ascending=True)
+                .reset_index()
+                .tail(15),
+                y="Shelf",
+                x="res",
+                orientation="h",
+                title=fr"Top 15 {subsector} Loan Shelf",
+            )
+
+#adding resi 
+
+        for subsector in ['Performing', 'CRT', 'PrimeJumbo']:
+            self.figures[fr"{subsector.lower()}BBSpread_Scatter"] = px.scatter(
+                self.backendHandle.runPrecannedStats(order=fr"{subsector.lower()}BBSpread")
+                .reset_index()
+                .rename(columns={"res": "BB"}),
+                x="PRICING DATE",
+                y="BB",
+                title=fr"{subsector} Loan NI BB Spread",
+            )
+
+            self.figures[fr"{subsector.lower()}BBBSpread_Scatter"] = px.scatter(
+                self.backendHandle.runPrecannedStats(order=fr"{subsector.lower()}BBBSpread")
+                .reset_index()
+                .rename(columns={"res": "BBB"}),
+                x="PRICING DATE",
+                y="BBB",
+                title=fr"{subsector} Loan NI BBB Spread",
+            )
+
+            try:
+                self.figures[fr"{subsector.lower()}BB/BBBSpread_Scatter"] = px.scatter(
+                    self.backendHandle.runPrecannedStats(
+                        order=fr"{subsector.lower()}BB_BBBSpread"
+                    ).reset_index(),
+                    x="PRICING DATE",
+                    y="res",
+                    title=fr"{subsector} Loan BB/BBB Spread Difference (Credit Curve)",
+                )
+            except Exception as e:
+                pass
+
         self.figures["ConsumerLoanIssuer"] = px.bar(
-            self.backendHandle.runPrecannedStats("ConsumerLoanIssuer")
+            self.backendHandle.runPrecannedStats("consumerLoanIssuer")
             .sort_values(by="res", ascending=True)
             .reset_index()
             .tail(15),
@@ -202,6 +299,18 @@ class FiguerFactory:
             title=f"{endDate} Rel Val",
         )
 
+
+     #resi
+        self.figures["RMBSLatestRelVal"] = px.scatter(
+            self.backendHandle.runRMBSRelVal(numBackDays=90),
+            y="Spread",
+            x="WAL",
+            color="LowestRatings",
+            text="Subsector",
+        )
+        # self.figures["RMBSLatestRelVal"].update_traces(textposition="bottom center")
+        # self.figures["RMBSLatestRelVal"].update_traces(marker={"size": 10})   
+
         df = self.backendHandle.databaseStatus()
         self.figures["databaseStatus"] = go.Figure(
             data=[
@@ -230,6 +339,28 @@ class FiguerFactory:
                         {"name": i, "id": i, "deletable": True} for i in df.columns
                     ],
                     data=df.to_dict("records"),
+                    filter_action="native",
+                    sort_action="native",
+                    sort_mode="single",
+                    selected_columns=[],
+                    selected_rows=[],
+                    page_action="native",
+                    page_current=0,
+                    page_size=10,
+                ),
+            ]
+        )
+
+        df_rmbs = self.backendHandle.getDisplayDf_rmbs(500)
+        self.figures["RMBSNIBondTable"] = html.Div(
+            children=[
+                html.Div("RMBS New Issue Bond"),
+                dash_table.DataTable(
+                    id="rmbs-repline-table",
+                    columns=[
+                        {"name": i, "id": i, "deletable": True} for i in df_rmbs.columns
+                    ],
+                    data=df_rmbs.to_dict("records"),
                     filter_action="native",
                     sort_action="native",
                     sort_mode="single",
